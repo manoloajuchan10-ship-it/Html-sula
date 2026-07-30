@@ -1,0 +1,1302 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario – Artes Sula</title>
+    <style>
+        /* Definición de Variables de Color para Modo Claro y Modo Oscuro */
+        :root {
+            --bg-principal: #eef2f5; /* Gris plateado suave */
+            --bg-tarjeta: #f9fbfd;    /* Fondo de tarjeta limpio */
+            --texto-principal: #333333;
+            --texto-secundario: #4a5568;
+            --borde-tarjeta: rgba(0, 123, 255, 0.15); /* Bordes finos azules sutiles */
+            --bg-input: #ffffff;
+            --borde-input: #cbd5e0;
+            --th-bg: linear-gradient(180deg, #4a5568, #2d3748);
+            --th-texto: #ffffff;
+            --fila-ingreso: #e6fffa;
+            --fila-egreso: #fff5f5;
+            --fila-texto-ingreso: #006d5b;
+            --fila-texto-egreso: #9b2c2c;
+            --total-bg: linear-gradient(90deg, #edf2f7, #e2e8f0);
+            --perfil-bg: linear-gradient(145deg, #ffffff, #f7fafc);
+            --bg-soporte: #f0f8ff;
+            --texto-soporte: #333333;
+            --texto-alerta-roja: #9b2c2c;
+        }
+        [data-theme="dark"] {
+            --bg-principal: #161920;
+            --bg-tarjeta: #1e2330;
+            --texto-principal: #e2e8f0;
+            --texto-secundario: #a0aec0;
+            --borde-tarjeta: rgba(40, 222, 161, 0.15);
+            --bg-input: #1a1f2c;
+            --borde-input: #2d3748;
+            --th-bg: linear-gradient(180deg, #1f2937, #111827);
+            --th-texto: #28dea1;
+            --fila-ingreso: rgba(40, 222, 161, 0.08);
+            --fila-egreso: rgba(229, 62, 62, 0.08);
+            --fila-texto-ingreso: #28dea1;
+            --fila-texto-egreso: #f56565;
+            --total-bg: linear-gradient(90deg, #1a1f2c, #11141d);
+            --perfil-bg: linear-gradient(145deg, #1e2330, #141822);
+            --bg-soporte: #1a2233;
+            --texto-soporte: #e2e8f0;
+            --texto-alerta-roja: #ffffff;
+        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 12px; background: var(--bg-principal); color: var(--texto-principal); transition: background 0.3s, color 0.3s; }
+        .segmento { display: none; width: 100%; box-sizing: border-box; }
+        .segmento.activo { display: block; }
+        .tarjeta { background: var(--bg-tarjeta); padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px var(--borde-tarjeta); margin-bottom: 15px; border: 1px solid var(--borde-tarjeta); position: relative; transition: background 0.3s, box-shadow 0.3s; }
+        /* Contenedor del Control del Modo Oscuro estilo Glow */
+        .contenedor-switch-oscuro { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg-tarjeta); border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--borde-input); }
+        .label-switch { font-size: 13px; font-weight: bold; color: var(--texto-secundario); display: flex; align-items: center; gap: 6px; }
+        
+        /* Estructura del Slider */
+        .switch-estilo-glow { position: relative; display: inline-block; width: 64px; height: 34px; }
+        .switch-estilo-glow input { opacity: 0; width: 0; height: 0; }
+        
+        .slider-glow { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e0; transition: .4s; border-radius: 34px; border: 2px solid #a0aec0; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        .slider-glow:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: #ffffff; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        
+        /* Encendido en Modo Claro (Celeste/Azul brillante) */
+        .switch-estilo-glow input:checked + .slider-glow { background-color: #007bff; border-color: #0056b3; box-shadow: 0 0 10px rgba(0, 123, 255, 0.4); }
+        .switch-estilo-glow input:checked + .slider-glow:before { transform: translateX(30px); background-color: #ffffff; box-shadow: 0 0 8px rgba(0, 123, 255, 0.6); }
+
+        /* Encendido alternativo en Modo Oscuro (Verde Cyber) */
+        [data-theme="dark"] .switch-estilo-glow input:checked + .slider-glow { background-color: #1a1f2c; border-color: #28dea1; box-shadow: 0 0 10px rgba(40, 222, 161, 0.4); }
+        [data-theme="dark"] .switch-estilo-glow input:checked + .slider-glow:before { transform: translateX(30px); background-color: #28dea1; box-shadow: 0 0 8px #28dea1; }
+
+        /* Punto indicador de luz exterior adaptativo */
+        .slider-glow:after { content: ""; position: absolute; width: 6px; height: 6px; background-color: #a0aec0; border-radius: 50%; top: -10px; left: 4px; transition: .4s; }
+        .switch-estilo-glow input:checked + .slider-glow:after { background-color: #007bff; box-shadow: 0 0 6px #007bff; }
+        [data-theme="dark"] .switch-estilo-glow input:checked + .slider-glow:after { background-color: #28dea1; box-shadow: 0 0 6px #28dea1; }
+        .nav-bar { display: flex; gap: 6px; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn-tab { flex: 1; min-width: 90px; padding: 10px 4px; cursor: pointer; background: #e9ecef; border: none; font-size: 11px; border-radius: 6px; font-weight: bold; color: #495057; text-align: center; }
+        .btn-tab.activo { background: #007bff; color: white; }
+        [data-theme="dark"] .btn-tab { background: #2d3748; color: #a0aec0; }
+        [data-theme="dark"] .btn-tab.activo { background: #007bff; color: white; }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 13px; color: var(--texto-principal); }
+        .contenedor-foto-perfil { position: absolute; top: 15px; right: 15px; width: 75px; height: 75px; border-radius: 10px; border: 2px solid #007bff; display: flex; justify-content: center; align-items: center; overflow: hidden; background: #e8f4fd; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 10; }
+        .contenedor-foto-perfil img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-subir-foto { background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 5px; display: block; }
+        .btn-salir-perfil { background: #dc3545; color: white; border: none; padding: 11px 16px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; box-shadow: 0 3px 6px rgba(220,53,69,0.25); width: 100%; justify-content: center; }
+        .caja-bienvenida-inicio { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 15px; text-align: center; background: var(--bg-tarjeta); border-radius: 8px; margin-top: 15px; }
+        .logo-inicio-sula { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #007bff; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .campo-clave-contenedor { position: relative; display: flex; align-items: center; width: 100%; }
+        .btn-ver-clave { position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 16px; color: #718096; padding: 5px; display: flex; align-items: center; justify-content: center; z-index: 5; }
+        input, select { width: 100%; padding: 11px; box-sizing: border-box; border: 1px solid var(--borde-input); border-radius: 8px; font-size: 14px; background: var(--bg-input); color: var(--texto-principal); transition: border-color 0.2s, background 0.2s; }
+        input:focus, select:focus { border-color: #007bff; outline: none; }
+        input:disabled { background: var(--borde-input); color: var(--texto-secundario); cursor: not-allowed; }
+        .select-recortado { width: 68%; margin-top: 5px; }
+        .btn-acc { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; box-shadow: 0 2px 4px rgba(40,167,69,0.15); }
+        .btn-azul { background: #007bff; padding: 10px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,123,255,0.15); }
+        .btn-naranja { background: #ff9800; margin-bottom: 10px; }
+        .modal-links-contenedor { display: flex; justify-content: space-between; margin-top: 12px; padding: 0 4px; }
+        .btn-link-modal { background: none; border: none; color: #007bff; font-size: 12px; font-weight: bold; cursor: pointer; padding: 4px; text-decoration: underline; }
+        [data-theme="dark"] .btn-link-modal { color: #28dea1; }
+        .btn-link-modal.rojo { color: #dc3545; }
+        .alerta-soporte-box { background: var(--fila-egreso); border: 1px solid var(--borde-tarjeta); border-left: 5px solid #e53e3e; padding: 12px; border-radius: 8px; margin-bottom: 15px; animation: parpadeoAlerta 2s infinite; color: var(--texto-alerta-roja); font-weight: 500; }
+        @keyframes parpadeoAlerta { 0% { opacity: 0.9; } 50% { opacity: 1; } 100% { opacity: 0.9; } }
+        .div-tabla { width: 100%; overflow-x: auto; margin-top: 18px; border: 1px solid var(--borde-input); border-radius: 10px; background: var(--bg-tarjeta); box-shadow: 0 4px 10px rgba(0,0,0,0.03); -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 850px; }
+        th, td { padding: 12px 14px; text-align: left; font-size: 13px; white-space: nowrap; }
+        th { background: var(--th-bg); color: var(--th-texto); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.8px; border-bottom: 2px solid #1a202c; }
+        .fila-ingreso { background-color: var(--fila-ingreso) !important; color: var(--fila-texto-ingreso); font-weight: 500; border-bottom: 1px solid var(--borde-input); }
+        .fila-egreso { background-color: var(--fila-egreso) !important; color: var(--fila-texto-egreso); font-weight: 500; border-bottom: 1px solid var(--borde-input); }
+        .fila-vacia { background-color: var(--bg-tarjeta); border-bottom: 1px solid var(--borde-input); }
+        .total { margin-top: 15px; padding: 14px; background: var(--total-bg); border-radius: 8px; font-size: 16px; font-weight: bold; text-align: right; color: var(--texto-principal); border-right: 5px solid #28a745; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); }
+        .perfil-elegante-contenedor { background: var(--perfil-bg); border-radius: 12px; padding: 20px; margin-top: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border-left: 5px solid #007bff; }
+        [data-theme="dark"] .perfil-elegante-contenedor { border-left-color: #28dea1; }
+        .perfil-elegante-nombre { font-size: 22px; font-weight: 800; color: var(--texto-principal); margin: 0 0 12px 0; letter-spacing: -0.3px; border-bottom: 2px solid var(--borde-input); padding-bottom: 8px; text-transform: uppercase; }
+        .perfil-elegante-detalles { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        @media(min-width: 480px) { .perfil-elegante-detalles { grid-template-columns: 1fr 1fr; } }
+        .perfil-elegante-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--texto-secundario); background: var(--bg-input); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--borde-input); }
+        .contenedor-acciones-celda { display: flex; gap: 4px; }
+        .btn-editar-fila { background: #ff9800; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .btn-eliminar-fila { background: #dc3545; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .notificacion-toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: #28a745; color: white; padding: 14px 24px; border-radius: 30px; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3); font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 10px; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10000; white-space: nowrap; }
+        .notificacion-toast.visible { bottom: 30px; }
+        .modal-capa { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 20000; }
+        .modal-capa.activo { display: flex; }
+        .modal-caja { background: var(--bg-tarjeta); padding: 25px; border-radius: 12px; width: 90%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: aparecerModal 0.3s ease-out; }
+        @keyframes aparecerModal { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-botones { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-modal { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; }
+        .btn-cancelar { background: #e9ecef; color: #495057; }
+        [data-theme="dark"] .btn-cancelar { background: #2d3748; color: #a0aec0; }
+        .btn-aceptar { background: #007bff; color: white; }
+    </style>
+</head>
+<body>
+    <div id="toast-mensaje" class="notificacion-toast"><span>✨ </span><span id="toast-texto">Mensaje</span></div>
+    
+    <div id="contenedor-switch-cabecera" class="contenedor-switch-oscuro">
+        <div class="label-switch">🌓 Panel de Apariencia Visual</div>
+        <label class="switch-estilo-glow">
+            <input type="checkbox" id="checkbox-modo-oscuro" onchange="conmutarModoOscuroSistema(this)">
+            <span class="slider-glow"></span>
+        </label>
+    </div>
+
+    <div id="modal-clave" class="modal-capa">
+        <div class="modal-caja">
+            <h3 id="modal-titulo" style="margin: 0 0 5px 0; font-size: 16px;">Acceso Restringido 🔒</h3>
+            <p id="modal-descripcion" style="margin: 0 0 15px 0; color: var(--texto-secundario); font-size: 13px;">Clave requerida:</p>
+            <div class="form-group">
+                <div class="campo-clave-contenedor">
+                    <input type="password" id="input-clave-modal" placeholder="Introduce la contraseña" style="text-align: center; font-size: 16px; letter-spacing: 3px; padding-right: 40px;">
+                    <button type="button" class="btn-ver-clave" onclick="conmutarVisibilidadClave('input-clave-modal', this)">👁️</button>
+                </div>
+            </div>
+            <div class="modal-botones">
+                <button class="btn-modal btn-cancelar" onclick="cerrarModalClave()">Cancelar</button>
+                <button class="btn-modal btn-aceptar" onclick="verificarClaveModal()">Aceptar</button>
+            </div>
+            <div id="modal-opciones-usuario" class="modal-links-contenedor">
+                <button type="button" class="btn-link-modal" onclick="abrirModalCambioClaveElegante()">✏️ Cambiar Clave</button>
+                <button type="button" class="btn-link-modal rojo" onclick="ejecutarOlvidoClaveSoporte()">❓ Olvidé mi Clave</button>
+            </div>
+        </div>
+    </div>
+    <div id="modal-cambio-clave" class="modal-capa">
+        <div class="modal-caja" style="border-left: 5px solid #ff9800;">
+            <h3 id="titulo-modal-cambio" style="margin: 0 0 5px 0; color: #ff9800; font-size: 16px;">✏️ Personalizar Contraseña</h3>
+            <p id="desc-modal-cambio" style="margin: 0 0 15px 0; color: var(--texto-secundario); font-size: 13px;">Paso 1: Confirma tu identidad:</p>
+            <div id="grupo-clave-actual" class="form-group"><input type="password" id="input-cambio-actual" placeholder="Contraseña PRIVADA ACTUAL" style="text-align: center;"></div>
+            <div id="grupo-clave-nueva" class="form-group" style="display: none;"><input type="text" id="input-cambio-nueva" placeholder="Escribe tu NUEVA contraseña" style="text-align: center; font-weight: bold;"></div>
+            <div class="modal-botones">
+                <button class="btn-modal btn-cancelar" onclick="cerrarModalCambioClaveElegante()">Cancelar</button>
+                <button id="btn-accion-cambio" class="btn-modal btn-aceptar" style="background:#ff9800;" onclick="procesarPasoCambioClave()">Siguiente ➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="seg-vista" class="segmento activo">
+        <div id="nav-bar-integrantes" class="nav-bar">
+            <button class="btn-tab activo">Pestaña Integrantes</button>
+            <button class="btn-tab" onclick="solicitarAccesoRegistro()">Registro de Datos 🔒</button>
+            <button id="btn-tab-soporte-ocultable" class="btn-tab" onclick="solicitarAccesoSoporte()">Soporte Admin 🛠️🔒</button>
+        </div>
+        <div class="tarjeta">
+            <div id="box-foto-vista" class="contenedor-foto-perfil" style="display: none; cursor: default;"><img id="img-perfil-vista" src="" alt="Foto"></div>
+            <h2 id="titulo-seccion-consulta" style="width: calc(100% - 90px); margin: 0 0 8px 0; font-size: 18px;">Consulta de Integrantes</h2>
+            <p id="aviso-contrasenia-perfil" style="color: #dc3545; font-weight: bold; font-size: 12px; margin: 0 0 15px 0; width: calc(100% - 90px);">⚠️ Cada perfil requiere su contraseña privada para ser consultado.</p>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Selecciona tu Nombre:</label>
+                <select id="filtro-integrante" class="select-recortado" onchange="solicitarAccesoIntegrante()">
+                    <option value="TODOS">-- Mostrar Todos --</option>
+                </select>
+            </div>
+            <div id="pantalla-inicio-sula" class="caja-bienvenida-inicio">
+                <img id="logo-sistema-bienvenida" class="logo-inicio-sula" src="" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://w3.org\' viewBox=\'0 0 24 24\' fill=\'%23007bff\'><path d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z\'/></svg>'">
+                <h3 style="margin: 0 0 5px 0; color: #007bff;">¡Bienvenidos a Artes Sula!</h3>
+                <p style="margin: 0; font-size: 13px; color: var(--texto-secundario); font-style: italic;">Por favor, busca tu nombre arriba e introduce tu clave para desbloquear tu cuenta.</p>
+            </div>
+            <div id="contenedor-datos-autorizados" style="display: none;">
+                <div class="perfil-elegante-contenedor">
+                    <h3 id="lbl-nombre-grande" class="perfil-elegante-nombre">-</h3>
+                    <div class="perfil-elegante-detalles">
+                        <div class="perfil-elegante-item">🎭🧸 <strong>Personaje:</strong> <span id="lbl-personaje">-</span></div>
+                        <div class="perfil-elegante-item">📞 <strong>Teléfono:</strong> <span id="lbl-telefono">-</span></div>
+                    </div>
+                </div>
+                <div class="div-tabla">
+                    <table class="tab-lectura">
+                        <thead>
+                            <tr><th>Fecha</th><th>Destino</th><th>Ingreso</th><th>Egreso</th><th>Efectivo</th><th>Descripción</th></tr>
+                        </thead>
+                        <tbody id="tb-vis"></tbody>
+                    </table>
+                </div>
+                <div class="total">Total Filtrado: Q<span id="tot-vis">0.00</span></div>
+                <button class="btn-salir-perfil" onclick="cerrarSesionINTEGRANTE()">🚪 Salir de la Cuenta</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="seg-reg" class="segmento">
+        <div id="nav-bar-registro" class="nav-bar">
+            <button class="btn-tab" onclick="goVis()">Pestaña Integrantes</button>
+            <button class="btn-tab activo">Registro de Datos 🔒</button>
+            <button id="btn-tab-soporte-ocultable-2" class="btn-tab" onclick="solicitarAccesoSoporte()">Soporte Admin 🛠️🔒</button>
+        </div>
+        <div class="tarjeta">
+            <div id="box-foto-preview" class="contenedor-foto-perfil" style="display: none;"><img id="img-perfil-preview" src="" alt="Previa"></div>
+            <h2 id="titulo-formulario-registro" style="margin:0 0 10px 0; font-size: 18px; width: calc(100% - 85px);">Ingresar Nuevo Registro</h2>
+            <button class="btn-subir-foto" onclick="document.getElementById('input-archivo-foto').click()">📷 Seleccionar Foto de Perfil</button>
+            <input type="file" id="input-archivo-foto" accept="image/*" style="display: none;" onchange="procesarFotoSeleccionada(this)">
+            <div class="form-group" style="margin-top: 15px;"><label>Nombre del Integrante:</label><select id="ins-nom" onchange="verificarDatosIntegrante()"></select></div>
+            <div class="form-group"><label>Nombre del Personaje:</label><input type="text" id="ins-per" placeholder="Ej. Goku"></div>
+            <div class="form-group"><label>Número Telefónico:</label><input type="text" id="ins-tel" placeholder="Ej. 5555-4444"></div>
+            <div class="form-group"><label>Destino:</label><input type="text" id="dest" placeholder="Ej. El Sumpango"></div>
+            <div class="form-group"><label>Ingreso:</label><input type="number" id="ing" value="0" step="0.01"></div>
+            <div class="form-group"><label>Egreso:</label><input type="number" id="egr" value="0" step="0.01"></div>
+            <div class="form-group"><label>Efectivo (Manual):</label><input type="text" id="efe" placeholder="Ej. Q500.00"></div>
+            <div class="form-group"><label>Descripción:</label><input type="text" id="desc" placeholder="Detalles"></div>
+            <button id="btn-guardar-registro" class="btn-acc" onclick="guardar()">Agregar al Inventario</button>
+        </div>
+        <div class="tarjeta">
+            <h2>Tabla de Control Interno</h2>
+            <div class="div-tabla">
+                <table>
+                    <thead>
+                        <tr><th>Acción</th><th>Fecha</th><th>Integrante</th><th>Personaje</th><th>Teléfono</th><th>Destino</th><th>Ingreso</th><th>Egreso</th><th>Efectivo</th><th>Descripción</th></tr>
+                    </thead>
+                    <tbody id="tb-reg"></tbody>
+                </table>
+            </div>
+            <div class="total">Total General Acumulado: Q<span id="tot-reg">0.00</span></div>
+        </div>
+    </div>
+
+    <div id="seg-soporte" class="segmento">
+        <div id="nav-bar-soporte" class="nav-bar">
+            <button class="btn-tab" onclick="goVis()">Pestaña Integrantes</button>
+            <button class="btn-tab" onclick="solicitarAccesoRegistro()">Registro de Datos 🔒</button>
+            <button class="btn-tab activo">Soporte Admin 🛠️🔒</button>
+        </div>
+        
+        <div id="panel-alertas-soporte" class="tarjeta" style="display: none; border: 1px solid #ffccd5; background: #fffafb;">
+            <h3 style="color:#e53e3e; margin:0 0 10px 0;">🚨 Solicitudes de Recuperación Pendientes</h3>
+            <div id="lista-alertas-olvidos"></div>
+        </div>
+        <div class="tarjeta" style="border: 1px solid #acd5f7; background: var(--bg-soporte); color: var(--texto-soporte);">
+            <h3 style="color: var(--texto-soporte); margin:0 0 10px 0;">⚙️ Configuración del Logotipo General</h3>
+            <button class="btn-subir-foto" style="margin-bottom: 12px;" onclick="document.getElementById('input-archivo-logo-sistema').click()">🖼️ Subir Logotipo Permanente de Bienvenida</button>
+            <input type="file" id="input-archivo-logo-sistema" accept="image/*" style="display: none;" onchange="procesarLogoSistema(this)">
+            <hr style="border: 0; border-top: 1px dashed #acd5f7; margin: 15px 0;">
+            
+            <h3 style="color: var(--texto-soporte); margin:0 0 10px 0;">➕ Crear Cuenta de Integrante</h3>
+            <div class="form-group">
+                <label style="color: var(--texto-soporte);">Nombre completo:</label>
+                <input type="text" id="nuevo-nombre-lista" placeholder="Escribe el nombre aquí" style="margin-bottom: 8px;">
+                <label style="color: var(--texto-soporte);">Asignar Contraseña por Defecto:</label>
+                <div class="campo-clave-contenedor" style="margin-bottom: 8px;">
+                    <input type="password" id="nueva-clave-lista" placeholder="Asigna su contraseña privada" style="text-align: center; padding-right: 40px;">
+                    <button type="button" class="btn-ver-clave" onclick="conmutarVisibilidadClave('nueva-clave-lista', this)">👁️</button>
+                </div>
+                <button class="btn-acc btn-azul" onclick="agregarNuevoNombreAOpcciones()">Guardar Nuevo Perfil</button>
+            </div>
+        </div>
+        <div class="tarjeta" style="background: var(--bg-soporte); color: var(--texto-soporte); border: 1px solid #acd5f7;">
+            <h2 style="color: var(--texto-soporte); margin: 0 0 6px 0;">🔑 Control y Recuperación de Contraseñas</h2>
+            <p style="font-size:12px; color: var(--texto-secundario); margin:0 0 12px 0;">Visualiza y fuerza cambios de contraseñas de las cuentas de tus integrantes o elimínalos.</p>
+            <div class="form-group"><label style="color: var(--texto-soporte);">Selecciona al Integrante:</label><select id="select-soporte-usuario" onchange="cargarClaveSoporteActual()"></select></div>
+            <div class="form-group"><label style="color: var(--texto-soporte);">Contraseña Actual / Nueva:</label><div class="campo-clave-contenedor"><input type="text" id="input-soporte-clave" placeholder="Contraseña de la cuenta" style="font-weight: bold; color: #007bff; background: var(--bg-input);"></div></div>
+            <button class="btn-acc btn-naranja" style="margin: 0;" onclick="guardarClaveDesdeSoporte()">✍️ Forzar Actualización de Contraseña</button>
+            <button class="btn-acc" style="margin-top: 10px; background: #dc3545;" onclick="eliminarIntegranteDesdeSoporte()">🗑️ Eliminar Perfil por Completo</button>
+        </div>
+    </div>
+    <script>
+        let historialRegistros = JSON.parse(localStorage.getItem('artesSula_historial')) || [];
+        let perfilesIntegrantes = JSON.parse(localStorage.getItem('artesSula_perfiles')) || {};
+        let solicitudesOlvido = JSON.parse(localStorage.getItem('artesSula_olvidos')) || [];
+        const CLAVE_ADMIN = "1234"; 
+        let modoModal = ""; let integranteAValidar = ""; let ultimoFiltroExitoso = "TODOS"; let indexFilaEnEdicion = -1;
+        let pasoCambioClaveActual = 1;
+
+        function conmutarModoOscuroSistema(checkbox) {
+            if (checkbox.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('artesSula_tema_visual', 'dark');
+                mostrarToast("Modo Oscuro Cyber Glow Activado", true);
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('artesSula_tema_visual', 'light');
+                mostrarToast("Modo Claro Estándar Activado", true);
+            }
+            renderizarAlertasSoporte();
+        }
+
+        function inicializarTemaPreferencia() {
+            const temaGuardado = localStorage.getItem('artesSula_tema_visual') || 'light';
+            const checkbox = document.getElementById('checkbox-modo-oscuro');
+            if (temaGuardado === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                checkbox.checked = true;
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                checkbox.checked = false;
+            }
+        }
+        function conmutarVisibilidadClave(inputId, boton) { 
+            const input = document.getElementById(inputId); 
+            if (input.type === "password") { 
+                input.type = "text"; 
+                boton.innerText = "🙈"; 
+            } else { 
+                input.type = "password"; 
+                boton.innerText = "👁️"; 
+            } 
+        }
+
+        function solicitarAccesoRegistro() { modoModal = "ADMIN"; document.getElementById('modal-opciones-usuario').style.display = "none"; document.getElementById('modal-titulo').innerText = "Acceso Restringido 🔒"; document.getElementById('modal-descripcion').innerText = "Introduce la clave de Administrador para modificar registros:"; abrirModalClave(); }
+        function solicitarAccesoSoporte() { modoModal = "SOPORTE"; document.getElementById('modal-opciones-usuario').style.display = "none"; document.getElementById('modal-titulo').innerText = "Soporte Técnico Admin 🛠️🔒"; document.getElementById('modal-descripcion').innerText = "Introduce la clave de Administrador para configuraciones:"; abrirModalClave(); }
+        
+        function solicitarAccesoIntegrante() { 
+            const selectFil = document.getElementById('filtro-integrante').value; 
+            if (selectFil === "TODOS") { modoModal = "INTEGRANTE_TODOS"; document.getElementById('modal-opciones-usuario').style.display = "none"; document.getElementById('modal-titulo').innerText = "Historial General 🔒"; document.getElementById('modal-descripcion').innerText = "Introduce la clave de Administrador para ver el historial masivo:"; abrirModalClave(); return; } 
+            modoModal = "INTEGRANTE"; integranteAValidar = selectFil; document.getElementById('modal-opciones-usuario').style.display = "flex"; document.getElementById('modal-titulo').innerText = `Validar Identidad: ${selectFil} 🔑`; document.getElementById('modal-descripcion').innerText = `Introduce tu contraseña privada para desbloquear tu información:`; abrirModalClave(); 
+        }
+        
+        function abrirModalClave() { const modal = document.getElementById('modal-clave'); const inputClave = document.getElementById('input-clave-modal'); inputClave.value = ""; inputClave.type = "password"; modal.classList.add('activo'); inputClave.focus(); }
+        function cerrarModalClave() { document.getElementById('modal-clave').classList.remove('activo'); if (modoModal === "INTEGRANTE" || modoModal === "INTEGRANTE_TODOS") { document.getElementById('filtro-integrante').value = ultimoFiltroExitoso; } }
+        
+        function verificarClaveModal() {
+            const inputClave = document.getElementById('input-clave-modal').value;
+            if (modoModal === "ADMIN") { if (inputClave === CLAVE_ADMIN) { cerrarModalClave(); ocultarTodosLosSegmentos(); document.getElementById('seg-reg').classList.add('activo'); verificarDatosIntegrante(); mostrarToast("Acceso concedido al Registro", true); } else { ClaveInvalidaAccion(); } } 
+            else if (modoModal === "SOPORTE") { if (inputClave === CLAVE_ADMIN) { cerrarModalClave(); ocultarTodosLosSegmentos(); document.getElementById('seg-soporte').classList.add('activo'); cargarClaveSoporteActual(); renderizarAlertasSoporte(); mostrarToast("Acceso concedido a Soporte", true); } else { ClaveInvalidaAccion(); } } 
+            else if (modoModal === "INTEGRANTE_TODOS") { if (inputClave === CLAVE_ADMIN) { cerrarModalClave(); ultimoFiltroExitoso = "TODOS"; ejecutarFiltradoVisual(); mostrarToast("Historial masivo desbloqueado", true); } else { ClaveInvalidaAccion(); } } 
+            else if (modoModal === "INTEGRANTE") { const datosUser = perfilesIntegrantes[integranteAValidar]; const claveCorrectaUser = datosUser ? datosUser.clave : ""; if (inputClave === claveCorrectaUser) { cerrarModalClave(); ultimoFiltroExitoso = integranteAValidar; ejecutarFiltradoVisual(); mostrarToast(`Bienvenido, ${integranteAValidar}`, true); } else { ClaveInvalidaAccion(); } }
+        }
+
+        function ClaveInvalidaAccion() { mostrarToast("Contraseña incorrecta. Inténtalo de nuevo.", false); document.getElementById('input-clave-modal').value = ""; document.getElementById('input-clave-modal').focus(); }
+        function ocultarTodosLosSegmentos() { document.getElementById('seg-vista').classList.remove('activo'); document.getElementById('seg-reg').classList.remove('activo'); document.getElementById('seg-soporte').classList.remove('activo'); }
+        function goVis() { ocultarTodosLosSegmentos(); document.getElementById('seg-vista').classList.add('activo'); document.getElementById('filtro-integrante').value = ultimoFiltroExitoso; ejecutarFiltradoVisual(); }
+        function mostrarToast(texto, esExito = true) { 
+            const toast = document.getElementById('toast-mensaje'); 
+            const toastTexto = document.getElementById('toast-texto'); 
+            if (esExito) { 
+                toast.style.background = "#28a745"; 
+                toast.style.boxShadow = "0 4px 15px rgba(40, 167, 69, 0.3)"; 
+                toastTexto.innerText = texto; 
+            } else { 
+                toast.style.background = "#dc3545"; 
+                toast.style.boxShadow = "0 4px 15px rgba(220, 53, 69, 0.3)"; 
+                toastTexto.innerText = "⚠️ " + texto; 
+            } 
+            toast.classList.add('visible'); 
+            setTimeout(() => { toast.classList.remove('visible'); }, 3000); 
+        }
+
+        function abrirModalCambioClaveElegante() { document.getElementById('modal-clave').classList.remove('activo'); pasoCambioClaveActual = 1; document.getElementById('titulo-modal-cambio').innerText = `✏️ Perfil: ${integranteAValidar}`; document.getElementById('desc-modal-cambio').innerText = "Paso 1: Introduce tu contraseña PRIVADA ACTUAL:"; document.getElementById('grupo-clave-actual').style.display = "block"; document.getElementById('grupo-clave-nueva').style.display = "none"; document.getElementById('input-cambio-actual').value = ""; document.getElementById('input-cambio-nueva').value = ""; document.getElementById('btn-accion-cambio').innerText = "Siguiente ➡️"; document.getElementById('modal-cambio-clave').classList.add('activo'); document.getElementById('input-cambio-actual').focus(); }
+        function cerrarModalCambioClaveElegante() { document.getElementById('modal-cambio-clave').classList.remove('activo'); document.getElementById('filtro-integrante').value = ultimoFiltroExitoso; }
+        
+        function procesarPasoCambioClave() {
+            if (pasoCambioClaveActual === 1) {
+                const claveIngresada = document.getElementById('input-cambio-actual').value;
+                const claveReal = perfilesIntegrantes[integranteAValidar] ? perfilesIntegrantes[integranteAValidar].clave : "";
+                if (claveIngresada !== claveReal) { mostrarToast("La contraseña privada actual es incorrecta.", false); return; }
+                pasoCambioClaveActual = 2; document.getElementById('desc-modal-cambio').innerText = "Paso 2: Escribe tu NUEVA contraseña a tu gusto:"; document.getElementById('grupo-clave-actual').style.display = "none"; document.getElementById('grupo-clave-nueva').style.display = "block"; document.getElementById('btn-accion-cambio').innerText = "Guardar Clave 💾"; document.getElementById('input-cambio-nueva').focus();
+            } else if (pasoCambioClaveActual === 2) {
+                const nuevaClave = document.getElementById('input-cambio-nueva').value.trim();
+                if (nuevaClave === "") { mostrarToast("La contraseña no puede estar vacía.", false); return; }
+                perfilesIntegrantes[integranteAValidar].clave = nuevaClave; localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes)); ultimoFiltroExitoso = integranteAValidar; document.getElementById('modal-cambio-clave').classList.remove('activo'); ejecutarFiltradoVisual(); alert(`🎉 ¡Contraseña cambiada!\nTu clave personalizada ha sido modificada con éxito!!.`);
+            }
+        }
+
+        function ejecutarOlvidoClaveSoporte() { if (!solicitudesOlvido.includes(integranteAValidar)) { solicitudesOlvido.push(integranteAValidar); localStorage.setItem('artesSula_olvidos', JSON.stringify(solicitudesOlvido)); } cerrarModalClave(); alert(`📢 Solicitud enviada.\nSe ha generado una alerta de auxilio técnico para "${integranteAValidar}". Por favor, comunícate con el administrador para recuperar tu clave.`); mostrarToast("Alerta técnica enviada a Soporte.", true); }
+        function renderizarAlertasSoporte() { const contenedor = document.getElementById('panel-alertas-soporte'); const lista = document.getElementById('lista-alertas-olvidos'); if (solicitudesOlvido.length === 0) { contenedor.style.display = "none"; return; } contenedor.style.display = "block"; lista.innerHTML = ""; solicitudesOlvido.forEach((usuario, index) => { lista.innerHTML += `<div class="alerta-soporte-box" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding:8px 12px; background: rgba(229, 62, 62, 0.15);"><span>👤 <strong style="color: var(--texto-alerta-roja);">${usuario}</strong> olvidó su clave privada.</span><button class="btn-editar-fila" style="background:#dc3545; padding:4px 8px; font-size:11px;" onclick="resolverAlertaSoporte(${index}, '${usuario}')">Atendido ✅</button></div>`; }); }
+        function resolverAlertaSoporte(index, usuario) { solicitudesOlvido.splice(index, 1); localStorage.setItem('artesSula_olvidos', JSON.stringify(solicitudesOlvido)); renderizarAlertasSoporte(); mostrarToast(`Solicitud de ${usuario} resuelta`, true); }
+        
+        function actualizarListasDesplegables() { 
+            const selectFiltro = document.getElementById('filtro-integrante'); 
+            const selectInserto = document.getElementById('ins-nom'); 
+            const selectSoporte = document.getElementById('select-soporte-usuario'); 
+            const valorFiltroActual = selectFiltro.value; 
+            const valorInsertoActual = selectInserto.value; 
+            const valorSoporteActual = selectSoporte.value; 
+            selectFiltro.innerHTML = '<option value="TODOS">-- Mostrar Todos --</option>'; 
+            selectInserto.innerHTML = ''; 
+            selectSoporte.innerHTML = ''; 
+            const listaNombres = Object.keys(perfilesIntegrantes); 
+            if (listaNombres.length === 0) { 
+                selectInserto.innerHTML = '<option value="">-- Agrega un integrante primero --</option>'; 
+                selectSoporte.innerHTML = '<option value="">-- Sin usuarios --</option>'; 
+            } else { 
+                listaNombres.forEach(nombre => { 
+                    const opcion = `<option value="${nombre}">${nombre}</option>`; 
+                    selectFiltro.innerHTML += opcion; 
+                    selectInserto.innerHTML += opcion; 
+                    selectSoporte.innerHTML += opcion; 
+                }); 
+            } 
+            selectFiltro.value = valorFiltroActual || "TODOS"; 
+            if (listaNombres.length > 0) { 
+                selectInserto.value = valorInsertoActual || listaNombres; 
+                selectSoporte.value = valorSoporteActual || listaNombres; 
+            } 
+        }
+        function cargarClaveSoporteActual() { const usr = document.getElementById('select-soporte-usuario').value; document.getElementById('input-soporte-clave').value = (perfilesIntegrantes[usr]) ? perfilesIntegrantes[usr].clave : ""; }
+        function guardarClaveDesdeSoporte() { const usr = document.getElementById('select-soporte-usuario').value; const nClv = document.getElementById('input-soporte-clave').value.trim(); if (!usr || nClv === "") { mostrarToast("Datos inválidos en soporte", false); return; } perfilesIntegrantes[usr].clave = nClv; localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes)); mostrarToast("Contraseña forzada correctamente", true); }
+        
+        function eliminarIntegranteDesdeSoporte() {
+            const usr = document.getElementById('select-soporte-usuario').value;
+            if (!usr) { mostrarToast("Selecciona un integrante válido", false); return; }
+            if (confirm(`⚠️ ¿ESTÁS SEGURO de eliminar por completo el perfil de "${usr}"?\nEsta acción quitará su acceso y contraseña, pero mantendrá sus registros financieros en el historial global.`)) {
+                delete perfilesIntegrantes[usr];
+                localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes));
+                if (ultimoFiltroExitoso === usr) { ultimoFiltroExitoso = "TODOS"; }
+                actualizarListasDesplegables();
+                cargarClaveSoporteActual();
+                actualizarTablasVisuales();
+                verificarDatosIntegrante();
+                mostrarToast(`Perfil de ${usr} eliminado de la base de datos`, true);
+            }
+        }
+        function agregarNuevoNombreAOpcciones() { 
+            const campoNuevoNombre = document.getElementById('nuevo-nombre-lista'); 
+            const campoNuevaClave = document.getElementById('nueva-clave-lista'); 
+            const nombreLimpio = campoNuevoNombre.value.trim(); 
+            const claveLimplia = campoNuevaClave.value.trim(); 
+            if (nombreLimpio === "" || claveLimplia === "") { mostrarToast("Debes escribir el nombre y contraseña.", false); return; } 
+            if (perfilesIntegrantes[nombreLimpio]) { mostrarToast("Este integrante ya existe.", false); return; } 
+            perfilesIntegrantes[nombreLimpio] = { personaje: "", telefono: "", clave: claveLimplia, foto: "" }; 
+            localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes)); 
+            actualizarListasDesplegables(); 
+            document.getElementById('ins-nom').value = nombreLimpio; 
+            document.getElementById('select-soporte-usuario').value = nombreLimplio; 
+            verificarDatosIntegrante(); 
+            cargarClaveSoporteActual(); 
+            campoNuevoNombre.value = ""; 
+            campoNuevaClave.value = ""; 
+            mostrarToast(`¡${nombreLimpio} se guardó en el almacenamiento!`, true); 
+            actualizarTablasVisuales(); 
+        }
+
+        function verificarDatosIntegrante() { 
+            const nom = document.getElementById('ins-nom').value; 
+            const inputPer = document.getElementById('ins-per'); 
+            const inputTel = document.getElementById('ins-tel'); 
+            const imgPreview = document.getElementById('img-perfil-preview'); 
+            const boxPreview = document.getElementById('box-foto-preview'); 
+            if (!nom) { 
+                inputPer.value = ""; inputTel.value = ""; 
+                inputPer.disabled = false; inputTel.disabled = false; 
+                boxPreview.style.display = 'none'; return; 
+            } 
+            if (perfilesIntegrantes[nom]) { 
+                inputPer.value = perfilesIntegrantes[nom].personaje || ""; 
+                inputTel.value = perfilesIntegrantes[nom].telefono || ""; 
+                inputPer.disabled = false; 
+                inputTel.disabled = false; 
+                if (perfilesIntegrantes[nom].foto) { 
+                    boxPreview.style.display = 'flex'; 
+                    imgPreview.src = perfilesIntegrantes[nom].foto; 
+                } else { boxPreview.style.display = 'none'; } 
+            } 
+        }
+        
+        function procesarFotoSeleccionada(input) { 
+            const nom = document.getElementById('ins-nom').value; 
+            if (!nom) { mostrarToast("Selecciona un integrante primero.", false); return; } 
+            if (input.files && input.files) { 
+                const lector = new FileReader(); 
+                lector.onload = function(e) { 
+                    const img = new Image(); 
+                    img.onload = function() { 
+                        const realCanvas = document.createElement('canvas'); 
+                        const realCtx = realCanvas.getContext('2d'); 
+                        realCanvas.width = 120; realCanvas.height = 120; 
+                        realCtx.drawImage(img, 0, 0, 120, 120); 
+                        const fotoComprimida = realCanvas.toDataURL('image/jpeg', 0.5); 
+                        perfilesIntegrantes[nom].foto = fotoComprimida; 
+                        localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes)); 
+                        document.getElementById('box-foto-preview').style.display = 'flex'; 
+                        document.getElementById('img-perfil-preview').src = fotoComprimida; 
+                        mostrarToast("Foto vinculada al perfil con éxito", true); 
+                    }; 
+                    img.src = e.target.result; 
+                }; 
+                lector.readAsDataURL(input.files); 
+            } 
+        }
+
+        function procesarLogoSistema(input) { 
+            if (input.files && input.files) { 
+                const lector = new FileReader(); 
+                lector.onload = function(e) { 
+                    const img = new Image(); 
+                    img.onload = function() { 
+                        const canvas = document.createElement('canvas'); 
+                        const ctx = canvas.getContext('2d'); 
+                        canvas.width = 150; canvas.height = 150; 
+                        ctx.drawImage(img, 0, 0, 150, 150); 
+                        const logoComprimido = canvas.toDataURL('image/jpeg', 0.6); 
+                        localStorage.setItem('artesSula_logo_fijo', logoComprimido); 
+                        document.getElementById('logo-sistema-bienvenida').src = logoComprimido; 
+                        mostrarToast("Logotipo de bienvenida guardado", true); 
+                    }; 
+                    img.src = e.target.result; 
+                }; 
+                lector.readAsDataURL(input.files); 
+            } 
+        }
+        function prepararEdicion(index) { 
+            indexFilaEnEdicion = index; const reg = historialRegistros[index]; 
+            document.getElementById('ins-nom').value = reg.integrante; 
+            document.getElementById('ins-per').value = reg.personaje; 
+            document.getElementById('ins-tel').value = reg.telefono; 
+            document.getElementById('dest').value = reg.destino; 
+            document.getElementById('ing').value = reg.ingreso; 
+            document.getElementById('egr').value = reg.egreso; 
+            document.getElementById('efe').value = reg.efectivo; 
+            document.getElementById('desc').value = reg.descripcion; 
+            document.getElementById('ins-per').disabled = false; 
+            document.getElementById('ins-tel').disabled = false; 
+            const boxPreview = document.getElementById('box-foto-preview'); 
+            const imgPreview = document.getElementById('img-perfil-preview'); 
+            if (perfilesIntegrantes[reg.integrante] && perfilesIntegrantes[reg.integrante].foto) { 
+                boxPreview.style.display = 'flex'; imgPreview.src = perfilesIntegrantes[reg.integrante].foto; 
+            } else { boxPreview.style.display = 'none'; } 
+            const btnGuardar = document.getElementById('btn-guardar-registro'); 
+            btnGuardar.innerText = "✍️ Guardar Cambios"; btnGuardar.className = "btn-acc btn-naranja"; 
+            document.getElementById('titulo-formulario-registro').innerText = "✏️ Editando Registro Seleccionado"; 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        }
+        
+        function eliminarRegistro(index) { if (confirm("⚠️ ¿Deseas eliminar este movimiento del historial?")) { historialRegistros.splice(index, 1); localStorage.setItem('artesSula_historial', JSON.stringify(historialRegistros)); actualizarTablasVisuales(); mostrarToast("Registro borrado con éxito.", true); } }
+        
+        function guardar() { 
+            const nom = document.getElementById('ins-nom').value; 
+            if (!nom) { mostrarToast("Selecciona un integrante válido.", false); return; } 
+            const per = document.getElementById('ins-per').value.trim() || "N/A"; 
+            const tel = document.getElementById('ins-tel').value.trim() || "N/A"; 
+            const d = document.getElementById('dest').value.trim() || "N/A"; 
+            const i = parseFloat(document.getElementById('ing').value) || 0; 
+            const e = parseFloat(document.getElementById('egr').value) || 0; 
+            const ef = document.getElementById('efe').value.trim() || "N/A"; 
+            const ds = document.getElementById('desc').value.trim() || "N/A"; 
+            
+            const imgPreview = document.getElementById('img-perfil-preview');
+            const boxPreview = document.getElementById('box-foto-preview');
+            let fotoActual = "";
+            if (boxPreview.style.display !== 'none' && imgPreview.src) { fotoActual = imgPreview.src; }
+
+            if (perfilesIntegrantes[nom]) { 
+                perfilesIntegrantes[nom].personaje = per; 
+                perfilesIntegrantes[nom].telefono = tel; 
+                if (fotoActual !== "") { perfilesIntegrantes[nom].foto = fotoActual; }
+                localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes)); 
+            } 
+            
+            historialRegistros.forEach(reg => {
+                if (reg.integrante === nom) { reg.personaje = per; reg.telefono = tel; }
+            });
+
+            if (indexFilaEnEdicion > -1) { 
+                historialRegistros[indexFilaEnEdicion].destino = d; 
+                historialRegistros[indexFilaEnEdicion].ingreso = i; 
+                historialRegistros[indexFilaEnEdicion].egreso = e; 
+                historialRegistros[indexFilaEnEdicion].efectivo = ef; 
+                historialRegistros[indexFilaEnEdicion].descripcion = ds; 
+                indexFilaEnEdicion = -1; 
+                mostrarToast("Registro modificado con éxito.", true); 
+            } else { 
+                const tiempo = new Date(); 
+                const f = tiempo.toLocaleDateString('es-ES') + ' ' + tiempo.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}); 
+                const nuevoRegistro = { fecha: f, integrante: nom, personaje: per, telefono: tel, destino: d, ingreso: i, egr: e, egreso: e, efectivo: ef, descripcion: ds }; 
+                historialRegistros.push(nuevoRegistro); 
+                mostrarToast("Movimiento agregado correctamente.", true); 
+            } 
+            localStorage.setItem('artesSula_historial', JSON.stringify(historialRegistros)); 
+            document.getElementById('dest').value = ''; document.getElementById('ing').value = '0'; 
+            document.getElementById('egr').value = '0'; document.getElementById('efe').value = ''; 
+            document.getElementById('desc').value = ''; 
+            const btnGuardar = document.getElementById('btn-guardar-registro'); 
+            btnGuardar.innerText = "Agregar al Inventario"; btnGuardar.className = "btn-acc"; 
+            actualizarTablasVisuales(); verificarDatosIntegrante(); 
+        }
+        function actualizarTablasVisuales() { let htmlReg = ""; let saldoGeneral = 0; historialRegistros.forEach((reg, idx) => { saldoGeneral = saldoGeneral + reg.ingreso - reg.egreso; let claseFila = "fila-vacia"; if (reg.ingreso > 0 && reg.egreso === 0) { claseFila = "fila-ingreso"; } else if (reg.egreso > 0 && reg.ingreso === 0) { claseFila = "fila-egreso"; } htmlReg += `<tr class="${claseFila}"><td><div class="contenedor-acciones-celda"><button class="btn-editar-fila" onclick="prepararEdicion(${idx})">✏️ Editar</button><button class="btn-eliminar-fila" onclick="eliminarRegistro(${idx})">🗑️ Borrar</button></div></td><td>${reg.fecha}</td><td>${reg.integrante}</td><td>${reg.personaje}</td><td>${reg.telefono}</td><td>${reg.destino}</td><td>Q${reg.ingreso.toFixed(2)}</td><td>Q${reg.egreso.toFixed(2)}</td><td>${reg.efectivo}</td><td>${reg.descripcion}</td></tr>`; }); document.getElementById('tb-reg').innerHTML = htmlReg; document.getElementById('tot-reg').innerText = saldoGeneral.toFixed(2); ejecutarFiltradoVisual(); }
+        function cerrarSesionINTEGRANTE() { ultimoFiltroExitoso = "TODOS"; document.getElementById('filtro-integrante').value = "TODOS"; ejecutarFiltradoVisual(); mostrarToast("Sesión cerrada. Pantalla protegida.", true); }
+        
+        function ejecutarFiltradoVisual() {
+            const boxFotoVista = document.getElementById('box-foto-vista'); const pantallaInicio = document.getElementById('pantalla-inicio-sula'); const datosContenedor = document.getElementById('contenedor-datos-autorizados'); const avisoFiltro = document.getElementById('aviso-contrasenia-perfil'); const tituloConsulta = document.getElementById('titulo-seccion-consulta');
+            let htmlVis = ""; let saldoFiltrado = 0;
+            if (ultimoFiltroExitoso === "TODOS" || !perfilesIntegrantes[ultimoFiltroExitoso]) { boxFotoVista.style.display = 'none'; datosContenedor.style.display = 'none'; pantallaInicio.style.display = 'flex'; avisoFiltro.style.display = 'block'; tituloConsulta.style.display = 'block'; return; }
+            pantallaInicio.style.display = 'none'; avisoFiltro.style.display = 'none'; tituloConsulta.style.display = 'none'; datosContenedor.style.display = 'block';
+            if (perfilesIntegrantes[ultimoFiltroExitoso].foto) { boxFotoVista.style.display = 'flex'; document.getElementById('img-perfil-vista').src = perfilesIntegrantes[ultimoFiltroExitoso].foto; } else { boxFotoVista.style.display = 'none'; }
+            historialRegistros.forEach(reg => { if (reg.integrante === ultimoFiltroExitoso) { saldoFiltrado = saldoFiltrado + reg.ingreso - reg.egreso; let claseFila = "fila-vacia"; if (reg.ingreso > 0 && reg.egreso === 0) { claseFila = "fila-ingreso"; } else if (reg.egreso > 0 && reg.ingreso === 0) { claseFila = "fila-egreso"; } htmlVis += `<tr class="${claseFila}"><td>${reg.fecha}</td><td>${reg.destino}</td><td>Q${reg.ingreso.toFixed(2)}</td><td>Q${reg.egreso.toFixed(2)}</td><td>${reg.efectivo}</td><td>${reg.descripcion}</td></tr>`; } });
+            if (htmlVis === "") { htmlVis = '<tr><td colspan="6" style="text-align:center; color:#888; font-style:italic; padding: 20px;">No tienes movimientos registrados en el inventario.</td></tr>'; }
+            document.getElementById('tb-vis').innerHTML = htmlVis; document.getElementById('tot-vis').innerText = saldoFiltrado.toFixed(2);
+            if (perfilesIntegrantes[ultimoFiltroExitoso]) { document.getElementById('lbl-nombre-grande').innerText = ultimoFiltroExitoso; document.getElementById('lbl-personaje').innerText = perfilesIntegrantes[ultimoFiltroExitoso].personaje || "N/A"; document.getElementById('lbl-telefono').innerText = perfilesIntegrantes[ultimoFiltroExitoso].telefono || "N/A"; }
+        }
+
+        function cargarLogoSistemaAlInicio() { const logoGuardado = localStorage.getItem('artesSula_logo_fijo'); if (logoGuardado) { document.getElementById('logo-sistema-bienvenida').src = logoGuardado; } }
+
+        function aplicarFiltroDeSeccionAppCreator() {
+            const parametrosURL = new URLSearchParams(window.location.search);
+            const vistaActiva = parametrosURL.get('vista');
+            if (vistaActiva === 'usuarios') {
+                const bSoporte1 = document.getElementById('btn-tab-soporte-ocultable');
+                const bSoporte2 = document.getElementById('btn-tab-soporte-ocultable-2');
+                if (bSoporte1) bSoporte1.style.display = 'none';
+                if (bSoporte2) bSoporte2.style.display = 'none';
+                goVis();
+            } else if (vistaActiva === 'soporte') {
+                ocultarTodosLosSegmentos();
+                document.getElementById('seg-soporte').classList.add('activo');
+                const nav1 = document.getElementById('nav-bar-integrantes');
+                const nav2 = document.getElementById('nav-bar-registro');
+                const nav3 = document.getElementById('nav-bar-soporte');
+                const switchCabecera = document.getElementById('contenedor-switch-cabecera');
+                if (nav1) nav1.style.display = 'none';
+                if (nav2) nav2.style.display = 'none';
+                if (nav3) nav3.style.display = 'none';
+                if (switchCabecera) switchCabecera.style.display = 'none';
+                cargarClaveSoporteActual();
+                renderizarAlertasSoporte();
+            }
+        }
+        
+        inicializarTemaPreferencia(); actualizarListasDesplegables(); actualizarTablasVisuales(); cargarLogoSistemaAlInicio();
+        aplicarFiltroDeSeccionAppCreator();
+        document.getElementById('input-clave-modal').addEventListener('keyup', function(event) { if (event.key === 'Enter') { verificarClaveModal(); } });
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario – Artes Sula</title>
+    <style>
+        /* Definición de Variables de Color para Modo Claro y Modo Oscuro */
+        :root {
+            --bg-principal: #eef2f5; /* Gris plateado suave */
+            --bg-tarjeta: #f9fbfd;    /* Fondo de tarjeta limpio */
+            --texto-principal: #333333;
+            --texto-secundario: #4a5568;
+            --borde-tarjeta: rgba(0, 123, 255, 0.15); /* Bordes finos azules sutiles */
+            --bg-input: #ffffff;
+            --borde-input: #cbd5e0;
+            --th-bg: linear-gradient(180deg, #4a5568, #2d3748);
+            --th-texto: #ffffff;
+            --fila-ingreso: #e6fffa;
+            --fila-egreso: #fff5f5;
+            --fila-texto-ingreso: #006d5b;
+            --fila-texto-egreso: #9b2c2c;
+            --total-bg: linear-gradient(90deg, #edf2f7, #e2e8f0);
+            --perfil-bg: linear-gradient(145deg, #ffffff, #f7fafc);
+            --bg-soporte: #f0f8ff;
+            --texto-soporte: #333333;
+            --texto-alerta-roja: #9b2c2c;
+        }
+        [data-theme="dark"] {
+            --bg-principal: #161920;
+            --bg-tarjeta: #1e2330;
+            --texto-principal: #e2e8f0;
+            --texto-secundario: #a0aec0;
+            --borde-tarjeta: rgba(40, 222, 161, 0.15);
+            --bg-input: #1a1f2c;
+            --borde-input: #2d3748;
+            --th-bg: linear-gradient(180deg, #1f2937, #111827);
+            --th-texto: #28dea1;
+            --fila-ingreso: rgba(40, 222, 161, 0.08);
+            --fila-egreso: rgba(229, 62, 62, 0.08);
+            --fila-texto-ingreso: #28dea1;
+            --fila-texto-egreso: #f56565;
+            --total-bg: linear-gradient(90deg, #1a1f2c, #11141d);
+            --perfil-bg: linear-gradient(145deg, #1e2330, #141822);
+            --bg-soporte: #1a2233;
+            --texto-soporte: #e2e8f0;
+            --texto-alerta-roja: #ffffff;
+        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 12px; background: var(--bg-principal); color: var(--texto-principal); transition: background 0.3s, color 0.3s; }
+        .segmento { display: none; width: 100%; box-sizing: border-box; }
+        .segmento.activo { display: block; }
+        .tarjeta { background: var(--bg-tarjeta); padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px var(--borde-tarjeta); margin-bottom: 15px; border: 1px solid var(--borde-tarjeta); position: relative; transition: background 0.3s, box-shadow 0.3s; }
+        /* Contenedor del Control del Modo Oscuro estilo Glow */
+        .contenedor-switch-oscuro { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg-tarjeta); border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--borde-input); }
+        .label-switch { font-size: 13px; font-weight: bold; color: var(--texto-secundario); display: flex; align-items: center; gap: 6px; }
+        
+        /* Estructura del Slider */
+        .switch-estilo-glow { position: relative; display: inline-block; width: 64px; height: 34px; }
+        .switch-estilo-glow input { opacity: 0; width: 0; height: 0; }
+        
+        .slider-glow { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e0; transition: .4s; border-radius: 34px; border: 2px solid #a0aec0; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        .slider-glow:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: #ffffff; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        
+        /* Encendido en Modo Claro (Celeste/Azul brillante) */
+        .switch-estilo-glow input:checked + .slider-glow { background-color: #007bff; border-color: #0056b3; box-shadow: 0 0 10px rgba(0, 123, 255, 0.4); }
+        .switch-estilo-glow input:checked + .slider-glow:before { transform: translateX(30px); background-color: #ffffff; box-shadow: 0 0 8px rgba(0, 123, 255, 0.6); }
+
+        /* Encendido alternativo en Modo Oscuro (Verde Cyber) */
+        [data-theme="dark"] .switch-estilo-glow input:checked + .slider-glow { background-color: #1a1f2c; border-color: #28dea1; box-shadow: 0 0 10px rgba(40, 222, 161, 0.4); }
+        [data-theme="dark"] .switch-estilo-glow input:checked + .slider-glow:before { transform: translateX(30px); background-color: #28dea1; box-shadow: 0 0 8px #28dea1; }
+
+        /* Punto indicador de luz exterior adaptativo */
+        .slider-glow:after { content: ""; position: absolute; width: 6px; height: 6px; background-color: #a0aec0; border-radius: 50%; top: -10px; left: 4px; transition: .4s; }
+        .switch-estilo-glow input:checked + .slider-glow:after { background-color: #007bff; box-shadow: 0 0 6px #007bff; }
+        [data-theme="dark"] .switch-estilo-glow input:checked + .slider-glow:after { background-color: #28dea1; box-shadow: 0 0 6px #28dea1; }
+        .nav-bar { display: flex; gap: 6px; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn-tab { flex: 1; min-width: 90px; padding: 10px 4px; cursor: pointer; background: #e9ecef; border: none; font-size: 11px; border-radius: 6px; font-weight: bold; color: #495057; text-align: center; }
+        .btn-tab.activo { background: #007bff; color: white; }
+        [data-theme="dark"] .btn-tab { background: #2d3748; color: #a0aec0; }
+        [data-theme="dark"] .btn-tab.activo { background: #007bff; color: white; }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 13px; color: var(--texto-principal); }
+        .contenedor-foto-perfil { position: absolute; top: 15px; right: 15px; width: 75px; height: 75px; border-radius: 10px; border: 2px solid #007bff; display: flex; justify-content: center; align-items: center; overflow: hidden; background: #e8f4fd; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 10; }
+        .contenedor-foto-perfil img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-subir-foto { background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 5px; display: block; }
+        .btn-salir-perfil { background: #dc3545; color: white; border: none; padding: 11px 16px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; box-shadow: 0 3px 6px rgba(220,53,69,0.25); width: 100%; justify-content: center; }
+        .caja-bienvenida-inicio { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 15px; text-align: center; background: var(--bg-tarjeta); border-radius: 8px; margin-top: 15px; }
+        .logo-inicio-sula { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #007bff; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .campo-clave-contenedor { position: relative; display: flex; align-items: center; width: 100%; }
+        .btn-ver-clave { position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 16px; color: #718096; padding: 5px; display: flex; align-items: center; justify-content: center; z-index: 5; }
+        input, select { width: 100%; padding: 11px; box-sizing: border-box; border: 1px solid var(--borde-input); border-radius: 8px; font-size: 14px; background: var(--bg-input); color: var(--texto-principal); transition: border-color 0.2s, background 0.2s; }
+        input:focus, select:focus { border-color: #007bff; outline: none; }
+        input:disabled { background: var(--borde-input); color: var(--texto-secundario); cursor: not-allowed; }
+        .select-recortado { width: 68%; margin-top: 5px; }
+        .btn-acc { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; box-shadow: 0 2px 4px rgba(40,167,69,0.15); }
+        .btn-azul { background: #007bff; padding: 10px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,123,255,0.15); }
+        .btn-naranja { background: #ff9800; margin-bottom: 10px; }
+        .modal-links-contenedor { display: flex; justify-content: space-between; margin-top: 12px; padding: 0 4px; }
+        .btn-link-modal { background: none; border: none; color: #007bff; font-size: 12px; font-weight: bold; cursor: pointer; padding: 4px; text-decoration: underline; }
+        [data-theme="dark"] .btn-link-modal { color: #28dea1; }
+        .btn-link-modal.rojo { color: #dc3545; }
+        .alerta-soporte-box { background: var(--fila-egreso); border: 1px solid var(--borde-tarjeta); border-left: 5px solid #e53e3e; padding: 12px; border-radius: 8px; margin-bottom: 15px; animation: parpadeoAlerta 2s infinite; color: var(--texto-alerta-roja); font-weight: 500; }
+        @keyframes parpadeoAlerta { 0% { opacity: 0.9; } 50% { opacity: 1; } 100% { opacity: 0.9; } }
+        .div-tabla { width: 100%; overflow-x: auto; margin-top: 18px; border: 1px solid var(--borde-input); border-radius: 10px; background: var(--bg-tarjeta); box-shadow: 0 4px 10px rgba(0,0,0,0.03); -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 850px; }
+        th, td { padding: 12px 14px; text-align: left; font-size: 13px; white-space: nowrap; }
+        th { background: var(--th-bg); color: var(--th-texto); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.8px; border-bottom: 2px solid #1a202c; }
+        .fila-ingreso { background-color: var(--fila-ingreso) !important; color: var(--fila-texto-ingreso); font-weight: 500; border-bottom: 1px solid var(--borde-input); }
+        .fila-egreso { background-color: var(--fila-egreso) !important; color: var(--fila-texto-egreso); font-weight: 500; border-bottom: 1px solid var(--borde-input); }
+        .fila-vacia { background-color: var(--bg-tarjeta); border-bottom: 1px solid var(--borde-input); }
+        .total { margin-top: 15px; padding: 14px; background: var(--total-bg); border-radius: 8px; font-size: 16px; font-weight: bold; text-align: right; color: var(--texto-principal); border-right: 5px solid #28a745; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); }
+        .perfil-elegante-contenedor { background: var(--perfil-bg); border-radius: 12px; padding: 20px; margin-top: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border-left: 5px solid #007bff; }
+        [data-theme="dark"] .perfil-elegante-contenedor { border-left-color: #28dea1; }
+        .perfil-elegante-nombre { font-size: 22px; font-weight: 800; color: var(--texto-principal); margin: 0 0 12px 0; letter-spacing: -0.3px; border-bottom: 2px solid var(--borde-input); padding-bottom: 8px; text-transform: uppercase; }
+        .perfil-elegante-detalles { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        @media(min-width: 480px) { .perfil-elegante-detalles { grid-template-columns: 1fr 1fr; } }
+        .perfil-elegante-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--texto-secundario); background: var(--bg-input); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--borde-input); }
+        .contenedor-acciones-celda { display: flex; gap: 4px; }
+        .btn-editar-fila { background: #ff9800; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .btn-eliminar-fila { background: #dc3545; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .notificacion-toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: #28a745; color: white; padding: 14px 24px; border-radius: 30px; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3); font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 10px; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10000; white-space: nowrap; }
+        .notificacion-toast.visible { bottom: 30px; }
+        .modal-capa { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 20000; }
+        .modal-capa.activo { display: flex; }
+        .modal-caja { background: var(--bg-tarjeta); padding: 25px; border-radius: 12px; width: 90%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: aparecerModal 0.3s ease-out; }
+        @keyframes aparecerModal { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-botones { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-modal { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; }
+        .btn-cancelar { background: #e9ecef; color: #495057; }
+        [data-theme="dark"] .btn-cancelar { background: #2d3748; color: #a0aec0; }
+        .btn-aceptar { background: #007bff; color: white; }
+    </style>
+</head>
+<body>
+    <div id="toast-mensaje" class="notificacion-toast"><span>✨ </span><span id="toast-texto">Mensaje</span></div>
+    
+    <div id="contenedor-switch-cabecera" class="contenedor-switch-oscuro">
+        <div class="label-switch">🌓 Panel de Apariencia Visual</div>
+        <label class="switch-estilo-glow">
+            <input type="checkbox" id="checkbox-modo-oscuro" onchange="conmutarModoOscuroSistema(this)">
+            <span class="slider-glow"></span>
+        </label>
+    </div>
+
+    <div id="modal-clave" class="modal-capa">
+        <div class="modal-caja">
+            <h3 id="modal-titulo" style="margin: 0 0 5px 0; font-size: 16px;">Acceso Restringido 🔒</h3>
+            <p id="modal-descripcion" style="margin: 0 0 15px 0; color: var(--texto-secundario); font-size: 13px;">Clave requerida:</p>
+            <div class="form-group">
+                <div class="campo-clave-contenedor">
+                    <input type="password" id="input-clave-modal" placeholder="Introduce la contraseña" style="text-align: center; font-size: 16px; letter-spacing: 3px; padding-right: 40px;">
+                    <button type="button" class="btn-ver-clave" onclick="conmutarVisibilidadClave('input-clave-modal', this)">👁️</button>
+                </div>
+            </div>
+            <div class="modal-botones">
+                <button class="btn-modal btn-cancelar" onclick="cerrarModalClave()">Cancelar</button>
+                <button class="btn-modal btn-aceptar" onclick="verificarClaveModal()">Aceptar</button>
+            </div>
+            <div id="modal-opciones-usuario" class="modal-links-contenedor">
+                <button type="button" class="btn-link-modal" onclick="abrirModalCambioClaveElegante()">✏️ Cambiar Clave</button>
+                <button type="button" class="btn-link-modal rojo" onclick="ejecutarOlvidoClaveSoporte()">❓ Olvidé mi Clave</button>
+            </div>
+        </div>
+    </div>
+    <div id="modal-cambio-clave" class="modal-capa">
+        <div class="modal-caja" style="border-left: 5px solid #ff9800;">
+            <h3 id="titulo-modal-cambio" style="margin: 0 0 5px 0; color: #ff9800; font-size: 16px;">✏️ Personalizar Contraseña</h3>
+            <p id="desc-modal-cambio" style="margin: 0 0 15px 0; color: var(--texto-secundario); font-size: 13px;">Paso 1: Confirma tu identidad:</p>
+            <div id="grupo-clave-actual" class="form-group"><input type="password" id="input-cambio-actual" placeholder="Contraseña PRIVADA ACTUAL" style="text-align: center;"></div>
+            <div id="grupo-clave-nueva" class="form-group" style="display: none;"><input type="text" id="input-cambio-nueva" placeholder="Escribe tu NUEVA contraseña" style="text-align: center; font-weight: bold;"></div>
+            <div class="modal-botones">
+                <button class="btn-modal btn-cancelar" onclick="cerrarModalCambioClaveElegante()">Cancelar</button>
+                <button id="btn-accion-cambio" class="btn-modal btn-aceptar" style="background:#ff9800;" onclick="procesarPasoCambioClave()">Siguiente ➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="seg-vista" class="segmento activo">
+        <div id="nav-bar-integrantes" class="nav-bar">
+            <button class="btn-tab activo">Pestaña Integrantes</button>
+            <button class="btn-tab" onclick="solicitarAccesoRegistro()">Registro de Datos 🔒</button>
+            <button id="btn-tab-soporte-ocultable" class="btn-tab" onclick="solicitarAccesoSoporte()">Soporte Admin 🛠️🔒</button>
+        </div>
+        <div class="tarjeta">
+            <div id="box-foto-vista" class="contenedor-foto-perfil" style="display: none; cursor: default;"><img id="img-perfil-vista" src="" alt="Foto"></div>
+            <h2 id="titulo-seccion-consulta" style="width: calc(100% - 90px); margin: 0 0 8px 0; font-size: 18px;">Consulta de Integrantes</h2>
+            <p id="aviso-contrasenia-perfil" style="color: #dc3545; font-weight: bold; font-size: 12px; margin: 0 0 15px 0; width: calc(100% - 90px);">⚠️ Cada perfil requiere su contraseña privada para ser consultado.</p>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Selecciona tu Nombre:</label>
+                <select id="filtro-integrante" class="select-recortado" onchange="solicitarAccesoIntegrante()">
+                    <option value="TODOS">-- Mostrar Todos --</option>
+                </select>
+            </div>
+            <div id="pantalla-inicio-sula" class="caja-bienvenida-inicio">
+                <img id="logo-sistema-bienvenida" class="logo-inicio-sula" src="" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://w3.org\' viewBox=\'0 0 24 24\' fill=\'%23007bff\'><path d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z\'/></svg>'">
+                <h3 style="margin: 0 0 5px 0; color: #007bff;">¡Bienvenidos a Artes Sula!</h3>
+                <p style="margin: 0; font-size: 13px; color: var(--texto-secundario); font-style: italic;">Por favor, busca tu nombre arriba e introduce tu clave para desbloquear tu cuenta.</p>
+            </div>
+            <div id="contenedor-datos-autorizados" style="display: none;">
+                <div class="perfil-elegante-contenedor">
+                    <h3 id="lbl-nombre-grande" class="perfil-elegante-nombre">-</h3>
+                    <div class="perfil-elegante-detalles">
+                        <div class="perfil-elegante-item">🎭🧸 <strong>Personaje:</strong> <span id="lbl-personaje">-</span></div>
+                        <div class="perfil-elegante-item">📞 <strong>Teléfono:</strong> <span id="lbl-telefono">-</span></div>
+                    </div>
+                </div>
+                <div class="div-tabla">
+                    <table class="tab-lectura">
+                        <thead>
+                            <tr><th>Fecha</th><th>Destino</th><th>Ingreso</th><th>Egreso</th><th>Efectivo</th><th>Descripción</th></tr>
+                        </thead>
+                        <tbody id="tb-vis"></tbody>
+                    </table>
+                </div>
+                <div class="total">Total Filtrado: Q<span id="tot-vis">0.00</span></div>
+                <button class="btn-salir-perfil" onclick="cerrarSesionINTEGRANTE()">🚪 Salir de la Cuenta</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="seg-reg" class="segmento">
+        <div id="nav-bar-registro" class="nav-bar">
+            <button class="btn-tab" onclick="goVis()">Pestaña Integrantes</button>
+            <button class="btn-tab activo">Registro de Datos 🔒</button>
+            <button id="btn-tab-soporte-ocultable-2" class="btn-tab" onclick="solicitarAccesoSoporte()">Soporte Admin 🛠️🔒</button>
+        </div>
+        <div class="tarjeta">
+            <div id="box-foto-preview" class="contenedor-foto-perfil" style="display: none;"><img id="img-perfil-preview" src="" alt="Previa"></div>
+            <h2 id="titulo-formulario-registro" style="margin:0 0 10px 0; font-size: 18px; width: calc(100% - 85px);">Ingresar Nuevo Registro</h2>
+            <button class="btn-subir-foto" onclick="document.getElementById('input-archivo-foto').click()">📷 Seleccionar Foto de Perfil</button>
+            <input type="file" id="input-archivo-foto" accept="image/*" style="display: none;" onchange="procesarFotoSeleccionada(this)">
+            <div class="form-group" style="margin-top: 15px;"><label>Nombre del Integrante:</label><select id="ins-nom" onchange="verificarDatosIntegrante()"></select></div>
+            <div class="form-group"><label>Nombre del Personaje:</label><input type="text" id="ins-per" placeholder="Ej. Goku"></div>
+            <div class="form-group"><label>Número Telefónico:</label><input type="text" id="ins-tel" placeholder="Ej. 5555-4444"></div>
+            <div class="form-group"><label>Destino:</label><input type="text" id="dest" placeholder="Ej. El Sumpango"></div>
+            <div class="form-group"><label>Ingreso:</label><input type="number" id="ing" value="0" step="0.01"></div>
+            <div class="form-group"><label>Egreso:</label><input type="number" id="egr" value="0" step="0.01"></div>
+            <div class="form-group"><label>Efectivo (Manual):</label><input type="text" id="efe" placeholder="Ej. Q500.00"></div>
+            <div class="form-group"><label>Descripción:</label><input type="text" id="desc" placeholder="Detalles"></div>
+            <button id="btn-guardar-registro" class="btn-acc" onclick="guardar()">Agregar al Inventario</button>
+        </div>
+        <div class="tarjeta">
+            <h2>Tabla de Control Interno</h2>
+            <div class="div-tabla">
+                <table>
+                    <thead>
+                        <tr><th>Acción</th><th>Fecha</th><th>Integrante</th><th>Personaje</th><th>Teléfono</th><th>Destino</th><th>Ingreso</th><th>Egreso</th><th>Efectivo</th><th>Descripción</th></tr>
+                    </thead>
+                    <tbody id="tb-reg"></tbody>
+                </table>
+            </div>
+            <div class="total">Total General Acumulado: Q<span id="tot-reg">0.00</span></div>
+        </div>
+    </div>
+
+    <div id="seg-soporte" class="segmento">
+        <div id="nav-bar-soporte" class="nav-bar">
+            <button class="btn-tab" onclick="goVis()">Pestaña Integrantes</button>
+            <button class="btn-tab" onclick="solicitarAccesoRegistro()">Registro de Datos 🔒</button>
+            <button class="btn-tab activo">Soporte Admin 🛠️🔒</button>
+        </div>
+        
+        <div id="panel-alertas-soporte" class="tarjeta" style="display: none; border: 1px solid #ffccd5; background: #fffafb;">
+            <h3 style="color:#e53e3e; margin:0 0 10px 0;">🚨 Solicitudes de Recuperación Pendientes</h3>
+            <div id="lista-alertas-olvidos"></div>
+        </div>
+        <div class="tarjeta" style="border: 1px solid #acd5f7; background: var(--bg-soporte); color: var(--texto-soporte);">
+            <h3 style="color: var(--texto-soporte); margin:0 0 10px 0;">⚙️ Configuración del Logotipo General</h3>
+            <button class="btn-subir-foto" style="margin-bottom: 12px;" onclick="document.getElementById('input-archivo-logo-sistema').click()">🖼️ Subir Logotipo Permanente de Bienvenida</button>
+            <input type="file" id="input-archivo-logo-sistema" accept="image/*" style="display: none;" onchange="procesarLogoSistema(this)">
+            <hr style="border: 0; border-top: 1px dashed #acd5f7; margin: 15px 0;">
+            
+            <h3 style="color: var(--texto-soporte); margin:0 0 10px 0;">➕ Crear Cuenta de Integrante</h3>
+            <div class="form-group">
+                <label style="color: var(--texto-soporte);">Nombre completo:</label>
+                <input type="text" id="nuevo-nombre-lista" placeholder="Escribe el nombre aquí" style="margin-bottom: 8px;">
+                <label style="color: var(--texto-soporte);">Asignar Contraseña por Defecto:</label>
+                <div class="campo-clave-contenedor" style="margin-bottom: 8px;">
+                    <input type="password" id="nueva-clave-lista" placeholder="Asigna su contraseña privada" style="text-align: center; padding-right: 40px;">
+                    <button type="button" class="btn-ver-clave" onclick="conmutarVisibilidadClave('nueva-clave-lista', this)">👁️</button>
+                </div>
+                <button class="btn-acc btn-azul" onclick="agregarNuevoNombreAOpcciones()">Guardar Nuevo Perfil</button>
+            </div>
+        </div>
+        <div class="tarjeta" style="background: var(--bg-soporte); color: var(--texto-soporte); border: 1px solid #acd5f7;">
+            <h2 style="color: var(--texto-soporte); margin: 0 0 6px 0;">🔑 Control y Recuperación de Contraseñas</h2>
+            <p style="font-size:12px; color: var(--texto-secundario); margin:0 0 12px 0;">Visualiza y fuerza cambios de contraseñas de las cuentas de tus integrantes o elimínalos.</p>
+            <div class="form-group"><label style="color: var(--texto-soporte);">Selecciona al Integrante:</label><select id="select-soporte-usuario" onchange="cargarClaveSoporteActual()"></select></div>
+            <div class="form-group"><label style="color: var(--texto-soporte);">Contraseña Actual / Nueva:</label><div class="campo-clave-contenedor"><input type="text" id="input-soporte-clave" placeholder="Contraseña de la cuenta" style="font-weight: bold; color: #007bff; background: var(--bg-input);"></div></div>
+            <button class="btn-acc btn-naranja" style="margin: 0;" onclick="guardarClaveDesdeSoporte()">✍️ Forzar Actualización de Contraseña</button>
+            <button class="btn-acc" style="margin-top: 10px; background: #dc3545;" onclick="eliminarIntegranteDesdeSoporte()">🗑️ Eliminar Perfil por Completo</button>
+        </div>
+    </div>
+    <script>
+        let historialRegistros = JSON.parse(localStorage.getItem('artesSula_historial')) || [];
+        let perfilesIntegrantes = JSON.parse(localStorage.getItem('artesSula_perfiles')) || {};
+        let solicitudesOlvido = JSON.parse(localStorage.getItem('artesSula_olvidos')) || [];
+        const CLAVE_ADMIN = "1234"; 
+        let modoModal = ""; let integranteAValidar = ""; let ultimoFiltroExitoso = "TODOS"; let indexFilaEnEdicion = -1;
+        let pasoCambioClaveActual = 1;
+
+        function conmutarModoOscuroSistema(checkbox) {
+            if (checkbox.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('artesSula_tema_visual', 'dark');
+                mostrarToast("Modo Oscuro Cyber Glow Activado", true);
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('artesSula_tema_visual', 'light');
+                mostrarToast("Modo Claro Estándar Activado", true);
+            }
+            renderizarAlertasSoporte();
+        }
+
+        function inicializarTemaPreferencia() {
+            const temaGuardado = localStorage.getItem('artesSula_tema_visual') || 'light';
+            const checkbox = document.getElementById('checkbox-modo-oscuro');
+            if (temaGuardado === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                checkbox.checked = true;
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                checkbox.checked = false;
+            }
+        }
+        function conmutarVisibilidadClave(inputId, boton) { 
+            const input = document.getElementById(inputId); 
+            if (input.type === "password") { 
+                input.type = "text"; 
+                boton.innerText = "🙈"; 
+            } else { 
+                input.type = "password"; 
+                boton.innerText = "👁️"; 
+            } 
+        }
+
+        function solicitarAccesoRegistro() { modoModal = "ADMIN"; document.getElementById('modal-opciones-usuario').style.display = "none"; document.getElementById('modal-titulo').innerText = "Acceso Restringido 🔒"; document.getElementById('modal-descripcion').innerText = "Introduce la clave de Administrador para modificar registros:"; abrirModalClave(); }
+        function solicitarAccesoSoporte() { modoModal = "SOPORTE"; document.getElementById('modal-opciones-usuario').style.display = "none"; document.getElementById('modal-titulo').innerText = "Soporte Técnico Admin 🛠️🔒"; document.getElementById('modal-descripcion').innerText = "Introduce la clave de Administrador para configuraciones:"; abrirModalClave(); }
+        
+        function solicitarAccesoIntegrante() { 
+            const selectFil = document.getElementById('filtro-integrante').value; 
+            if (selectFil === "TODOS") { modoModal = "INTEGRANTE_TODOS"; document.getElementById('modal-opciones-usuario').style.display = "none"; document.getElementById('modal-titulo').innerText = "Historial General 🔒"; document.getElementById('modal-descripcion').innerText = "Introduce la clave de Administrador para ver el historial masivo:"; abrirModalClave(); return; } 
+            modoModal = "INTEGRANTE"; integranteAValidar = selectFil; document.getElementById('modal-opciones-usuario').style.display = "flex"; document.getElementById('modal-titulo').innerText = `Validar Identidad: ${selectFil} 🔑`; document.getElementById('modal-descripcion').innerText = `Introduce tu contraseña privada para desbloquear tu información:`; abrirModalClave(); 
+        }
+        
+        function abrirModalClave() { const modal = document.getElementById('modal-clave'); const inputClave = document.getElementById('input-clave-modal'); inputClave.value = ""; inputClave.type = "password"; modal.classList.add('activo'); inputClave.focus(); }
+        function cerrarModalClave() { document.getElementById('modal-clave').classList.remove('activo'); if (modoModal === "INTEGRANTE" || modoModal === "INTEGRANTE_TODOS") { document.getElementById('filtro-integrante').value = ultimoFiltroExitoso; } }
+        
+        function verificarClaveModal() {
+            const inputClave = document.getElementById('input-clave-modal').value;
+            if (modoModal === "ADMIN") { if (inputClave === CLAVE_ADMIN) { cerrarModalClave(); ocultarTodosLosSegmentos(); document.getElementById('seg-reg').classList.add('activo'); verificarDatosIntegrante(); mostrarToast("Acceso concedido al Registro", true); } else { ClaveInvalidaAccion(); } } 
+            else if (modoModal === "SOPORTE") { if (inputClave === CLAVE_ADMIN) { cerrarModalClave(); ocultarTodosLosSegmentos(); document.getElementById('seg-soporte').classList.add('activo'); cargarClaveSoporteActual(); renderizarAlertasSoporte(); mostrarToast("Acceso concedido a Soporte", true); } else { ClaveInvalidaAccion(); } } 
+            else if (modoModal === "INTEGRANTE_TODOS") { if (inputClave === CLAVE_ADMIN) { cerrarModalClave(); ultimoFiltroExitoso = "TODOS"; ejecutarFiltradoVisual(); mostrarToast("Historial masivo desbloqueado", true); } else { ClaveInvalidaAccion(); } } 
+            else if (modoModal === "INTEGRANTE") { const datosUser = perfilesIntegrantes[integranteAValidar]; const claveCorrectaUser = datosUser ? datosUser.clave : ""; if (inputClave === claveCorrectaUser) { cerrarModalClave(); ultimoFiltroExitoso = integranteAValidar; ejecutarFiltradoVisual(); mostrarToast(`Bienvenido, ${integranteAValidar}`, true); } else { ClaveInvalidaAccion(); } }
+        }
+
+        function ClaveInvalidaAccion() { mostrarToast("Contraseña incorrecta. Inténtalo de nuevo.", false); document.getElementById('input-clave-modal').value = ""; document.getElementById('input-clave-modal').focus(); }
+        function ocultarTodosLosSegmentos() { document.getElementById('seg-vista').classList.remove('activo'); document.getElementById('seg-reg').classList.remove('activo'); document.getElementById('seg-soporte').classList.remove('activo'); }
+        function goVis() { ocultarTodosLosSegmentos(); document.getElementById('seg-vista').classList.add('activo'); document.getElementById('filtro-integrante').value = ultimoFiltroExitoso; ejecutarFiltradoVisual(); }
+        function mostrarToast(texto, esExito = true) { 
+            const toast = document.getElementById('toast-mensaje'); 
+            const toastTexto = document.getElementById('toast-texto'); 
+            if (esExito) { 
+                toast.style.background = "#28a745"; 
+                toast.style.boxShadow = "0 4px 15px rgba(40, 167, 69, 0.3)"; 
+                toastTexto.innerText = texto; 
+            } else { 
+                toast.style.background = "#dc3545"; 
+                toast.style.boxShadow = "0 4px 15px rgba(220, 53, 69, 0.3)"; 
+                toastTexto.innerText = "⚠️ " + texto; 
+            } 
+            toast.classList.add('visible'); 
+            setTimeout(() => { toast.classList.remove('visible'); }, 3000); 
+        }
+
+        function abrirModalCambioClaveElegante() { document.getElementById('modal-clave').classList.remove('activo'); pasoCambioClaveActual = 1; document.getElementById('titulo-modal-cambio').innerText = `✏️ Perfil: ${integranteAValidar}`; document.getElementById('desc-modal-cambio').innerText = "Paso 1: Introduce tu contraseña PRIVADA ACTUAL:"; document.getElementById('grupo-clave-actual').style.display = "block"; document.getElementById('grupo-clave-nueva').style.display = "none"; document.getElementById('input-cambio-actual').value = ""; document.getElementById('input-cambio-nueva').value = ""; document.getElementById('btn-accion-cambio').innerText = "Siguiente ➡️"; document.getElementById('modal-cambio-clave').classList.add('activo'); document.getElementById('input-cambio-actual').focus(); }
+        function cerrarModalCambioClaveElegante() { document.getElementById('modal-cambio-clave').classList.remove('activo'); document.getElementById('filtro-integrante').value = ultimoFiltroExitoso; }
+        
+        function procesarPasoCambioClave() {
+            if (pasoCambioClaveActual === 1) {
+                const claveIngresada = document.getElementById('input-cambio-actual').value;
+                const claveReal = perfilesIntegrantes[integranteAValidar] ? perfilesIntegrantes[integranteAValidar].clave : "";
+                if (claveIngresada !== claveReal) { mostrarToast("La contraseña privada actual es incorrecta.", false); return; }
+                pasoCambioClaveActual = 2; document.getElementById('desc-modal-cambio').innerText = "Paso 2: Escribe tu NUEVA contraseña a tu gusto:"; document.getElementById('grupo-clave-actual').style.display = "none"; document.getElementById('grupo-clave-nueva').style.display = "block"; document.getElementById('btn-accion-cambio').innerText = "Guardar Clave 💾"; document.getElementById('input-cambio-nueva').focus();
+            } else if (pasoCambioClaveActual === 2) {
+                const nuevaClave = document.getElementById('input-cambio-nueva').value.trim();
+                if (nuevaClave === "") { mostrarToast("La contraseña no puede estar vacía.", false); return; }
+                perfilesIntegrantes[integranteAValidar].clave = nuevaClave; localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes)); ultimoFiltroExitoso = integranteAValidar; document.getElementById('modal-cambio-clave').classList.remove('activo'); ejecutarFiltradoVisual(); alert(`🎉 ¡Contraseña cambiada!\nTu clave personalizada ha sido modificada con éxito!!.`);
+            }
+        }
+
+        function ejecutarOlvidoClaveSoporte() { if (!solicitudesOlvido.includes(integranteAValidar)) { solicitudesOlvido.push(integranteAValidar); localStorage.setItem('artesSula_olvidos', JSON.stringify(solicitudesOlvido)); } cerrarModalClave(); alert(`📢 Solicitud enviada.\nSe ha generado una alerta de auxilio técnico para "${integranteAValidar}". Por favor, comunícate con el administrador para recuperar tu clave.`); mostrarToast("Alerta técnica enviada a Soporte.", true); }
+        function renderizarAlertasSoporte() { const contenedor = document.getElementById('panel-alertas-soporte'); const lista = document.getElementById('lista-alertas-olvidos'); if (solicitudesOlvido.length === 0) { contenedor.style.display = "none"; return; } contenedor.style.display = "block"; lista.innerHTML = ""; solicitudesOlvido.forEach((usuario, index) => { lista.innerHTML += `<div class="alerta-soporte-box" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding:8px 12px; background: rgba(229, 62, 62, 0.15);"><span>👤 <strong style="color: var(--texto-alerta-roja);">${usuario}</strong> olvidó su clave privada.</span><button class="btn-editar-fila" style="background:#dc3545; padding:4px 8px; font-size:11px;" onclick="resolverAlertaSoporte(${index}, '${usuario}')">Atendido ✅</button></div>`; }); }
+        function resolverAlertaSoporte(index, usuario) { solicitudesOlvido.splice(index, 1); localStorage.setItem('artesSula_olvidos', JSON.stringify(solicitudesOlvido)); renderizarAlertasSoporte(); mostrarToast(`Solicitud de ${usuario} resuelta`, true); }
+        
+        function actualizarListasDesplegables() { 
+            const selectFiltro = document.getElementById('filtro-integrante'); 
+            const selectInserto = document.getElementById('ins-nom'); 
+            const selectSoporte = document.getElementById('select-soporte-usuario'); 
+            const valorFiltroActual = selectFiltro.value; 
+            const valorInsertoActual = selectInserto.value; 
+            const valorSoporteActual = selectSoporte.value; 
+            selectFiltro.innerHTML = '<option value="TODOS">-- Mostrar Todos --</option>'; 
+            selectInserto.innerHTML = ''; 
+            selectSoporte.innerHTML = ''; 
+            const listaNombres = Object.keys(perfilesIntegrantes); 
+            if (listaNombres.length === 0) { 
+                selectInserto.innerHTML = '<option value="">-- Agrega un integrante primero --</option>'; 
+                selectSoporte.innerHTML = '<option value="">-- Sin usuarios --</option>'; 
+            } else { 
+                listaNombres.forEach(nombre => { 
+                    const opcion = `<option value="${nombre}">${nombre}</option>`; 
+                    selectFiltro.innerHTML += opcion; 
+                    selectInserto.innerHTML += opcion; 
+                    selectSoporte.innerHTML += opcion; 
+                }); 
+            } 
+            selectFiltro.value = valorFiltroActual || "TODOS"; 
+            if (listaNombres.length > 0) { 
+                selectInserto.value = valorInsertoActual || listaNombres; 
+                selectSoporte.value = valorSoporteActual || listaNombres; 
+            } 
+        }
+        function cargarClaveSoporteActual() { const usr = document.getElementById('select-soporte-usuario').value; document.getElementById('input-soporte-clave').value = (perfilesIntegrantes[usr]) ? perfilesIntegrantes[usr].clave : ""; }
+        function guardarClaveDesdeSoporte() { const usr = document.getElementById('select-soporte-usuario').value; const nClv = document.getElementById('input-soporte-clave').value.trim(); if (!usr || nClv === "") { mostrarToast("Datos inválidos en soporte", false); return; } perfilesIntegrantes[usr].clave = nClv; localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes)); mostrarToast("Contraseña forzada correctamente", true); }
+        
+        function eliminarIntegranteDesdeSoporte() {
+            const usr = document.getElementById('select-soporte-usuario').value;
+            if (!usr) { mostrarToast("Selecciona un integrante válido", false); return; }
+            if (confirm(`⚠️ ¿ESTÁS SEGURO de eliminar por completo el perfil de "${usr}"?\nEsta acción quitará su acceso y contraseña, pero mantendrá sus registros financieros en el historial global.`)) {
+                delete perfilesIntegrantes[usr];
+                localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes));
+                if (ultimoFiltroExitoso === usr) { ultimoFiltroExitoso = "TODOS"; }
+                actualizarListasDesplegables();
+                cargarClaveSoporteActual();
+                actualizarTablasVisuales();
+                verificarDatosIntegrante();
+                mostrarToast(`Perfil de ${usr} eliminado de la base de datos`, true);
+            }
+        }
+        function agregarNuevoNombreAOpcciones() { 
+            const campoNuevoNombre = document.getElementById('nuevo-nombre-lista'); 
+            const campoNuevaClave = document.getElementById('nueva-clave-lista'); 
+            const nombreLimpio = campoNuevoNombre.value.trim(); 
+            const claveLimplia = campoNuevaClave.value.trim(); 
+            if (nombreLimpio === "" || claveLimplia === "") { mostrarToast("Debes escribir el nombre y contraseña.", false); return; } 
+            if (perfilesIntegrantes[nombreLimpio]) { mostrarToast("Este integrante ya existe.", false); return; } 
+            perfilesIntegrantes[nombreLimpio] = { personaje: "", telefono: "", clave: claveLimplia, foto: "" }; 
+            localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes)); 
+            actualizarListasDesplegables(); 
+            document.getElementById('ins-nom').value = nombreLimpio; 
+            document.getElementById('select-soporte-usuario').value = nombreLimplio; 
+            verificarDatosIntegrante(); 
+            cargarClaveSoporteActual(); 
+            campoNuevoNombre.value = ""; 
+            campoNuevaClave.value = ""; 
+            mostrarToast(`¡${nombreLimpio} se guardó en el almacenamiento!`, true); 
+            actualizarTablasVisuales(); 
+        }
+
+        function verificarDatosIntegrante() { 
+            const nom = document.getElementById('ins-nom').value; 
+            const inputPer = document.getElementById('ins-per'); 
+            const inputTel = document.getElementById('ins-tel'); 
+            const imgPreview = document.getElementById('img-perfil-preview'); 
+            const boxPreview = document.getElementById('box-foto-preview'); 
+            if (!nom) { 
+                inputPer.value = ""; inputTel.value = ""; 
+                inputPer.disabled = false; inputTel.disabled = false; 
+                boxPreview.style.display = 'none'; return; 
+            } 
+            if (perfilesIntegrantes[nom]) { 
+                inputPer.value = perfilesIntegrantes[nom].personaje || ""; 
+                inputTel.value = perfilesIntegrantes[nom].telefono || ""; 
+                inputPer.disabled = false; 
+                inputTel.disabled = false; 
+                if (perfilesIntegrantes[nom].foto) { 
+                    boxPreview.style.display = 'flex'; 
+                    imgPreview.src = perfilesIntegrantes[nom].foto; 
+                } else { boxPreview.style.display = 'none'; } 
+            } 
+        }
+        
+        function procesarFotoSeleccionada(input) { 
+            const nom = document.getElementById('ins-nom').value; 
+            if (!nom) { mostrarToast("Selecciona un integrante primero.", false); return; } 
+            if (input.files && input.files) { 
+                const lector = new FileReader(); 
+                lector.onload = function(e) { 
+                    const img = new Image(); 
+                    img.onload = function() { 
+                        const realCanvas = document.createElement('canvas'); 
+                        const realCtx = realCanvas.getContext('2d'); 
+                        realCanvas.width = 120; realCanvas.height = 120; 
+                        realCtx.drawImage(img, 0, 0, 120, 120); 
+                        const fotoComprimida = realCanvas.toDataURL('image/jpeg', 0.5); 
+                        perfilesIntegrantes[nom].foto = fotoComprimida; 
+                        localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes)); 
+                        document.getElementById('box-foto-preview').style.display = 'flex'; 
+                        document.getElementById('img-perfil-preview').src = fotoComprimida; 
+                        mostrarToast("Foto vinculada al perfil con éxito", true); 
+                    }; 
+                    img.src = e.target.result; 
+                }; 
+                lector.readAsDataURL(input.files); 
+            } 
+        }
+
+        function procesarLogoSistema(input) { 
+            if (input.files && input.files) { 
+                const lector = new FileReader(); 
+                lector.onload = function(e) { 
+                    const img = new Image(); 
+                    img.onload = function() { 
+                        const canvas = document.createElement('canvas'); 
+                        const ctx = canvas.getContext('2d'); 
+                        canvas.width = 150; canvas.height = 150; 
+                        ctx.drawImage(img, 0, 0, 150, 150); 
+                        const logoComprimido = canvas.toDataURL('image/jpeg', 0.6); 
+                        localStorage.setItem('artesSula_logo_fijo', logoComprimido); 
+                        document.getElementById('logo-sistema-bienvenida').src = logoComprimido; 
+                        mostrarToast("Logotipo de bienvenida guardado", true); 
+                    }; 
+                    img.src = e.target.result; 
+                }; 
+                lector.readAsDataURL(input.files); 
+            } 
+        }
+        function prepararEdicion(index) { 
+            indexFilaEnEdicion = index; const reg = historialRegistros[index]; 
+            document.getElementById('ins-nom').value = reg.integrante; 
+            document.getElementById('ins-per').value = reg.personaje; 
+            document.getElementById('ins-tel').value = reg.telefono; 
+            document.getElementById('dest').value = reg.destino; 
+            document.getElementById('ing').value = reg.ingreso; 
+            document.getElementById('egr').value = reg.egreso; 
+            document.getElementById('efe').value = reg.efectivo; 
+            document.getElementById('desc').value = reg.descripcion; 
+            document.getElementById('ins-per').disabled = false; 
+            document.getElementById('ins-tel').disabled = false; 
+            const boxPreview = document.getElementById('box-foto-preview'); 
+            const imgPreview = document.getElementById('img-perfil-preview'); 
+            if (perfilesIntegrantes[reg.integrante] && perfilesIntegrantes[reg.integrante].foto) { 
+                boxPreview.style.display = 'flex'; imgPreview.src = perfilesIntegrantes[reg.integrante].foto; 
+            } else { boxPreview.style.display = 'none'; } 
+            const btnGuardar = document.getElementById('btn-guardar-registro'); 
+            btnGuardar.innerText = "✍️ Guardar Cambios"; btnGuardar.className = "btn-acc btn-naranja"; 
+            document.getElementById('titulo-formulario-registro').innerText = "✏️ Editando Registro Seleccionado"; 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        }
+        
+        function eliminarRegistro(index) { if (confirm("⚠️ ¿Deseas eliminar este movimiento del historial?")) { historialRegistros.splice(index, 1); localStorage.setItem('artesSula_historial', JSON.stringify(historialRegistros)); actualizarTablasVisuales(); mostrarToast("Registro borrado con éxito.", true); } }
+        
+        function guardar() { 
+            const nom = document.getElementById('ins-nom').value; 
+            if (!nom) { mostrarToast("Selecciona un integrante válido.", false); return; } 
+            const per = document.getElementById('ins-per').value.trim() || "N/A"; 
+            const tel = document.getElementById('ins-tel').value.trim() || "N/A"; 
+            const d = document.getElementById('dest').value.trim() || "N/A"; 
+            const i = parseFloat(document.getElementById('ing').value) || 0; 
+            const e = parseFloat(document.getElementById('egr').value) || 0; 
+            const ef = document.getElementById('efe').value.trim() || "N/A"; 
+            const ds = document.getElementById('desc').value.trim() || "N/A"; 
+            
+            const imgPreview = document.getElementById('img-perfil-preview');
+            const boxPreview = document.getElementById('box-foto-preview');
+            let fotoActual = "";
+            if (boxPreview.style.display !== 'none' && imgPreview.src) { fotoActual = imgPreview.src; }
+
+            if (perfilesIntegrantes[nom]) { 
+                perfilesIntegrantes[nom].personaje = per; 
+                perfilesIntegrantes[nom].telefono = tel; 
+                if (fotoActual !== "") { perfilesIntegrantes[nom].foto = fotoActual; }
+                localStorage.setItem('artesSula_perfiles', JSON.stringify(perfilesIntegrantes)); 
+            } 
+            
+            historialRegistros.forEach(reg => {
+                if (reg.integrante === nom) { reg.personaje = per; reg.telefono = tel; }
+            });
+
+            if (indexFilaEnEdicion > -1) { 
+                historialRegistros[indexFilaEnEdicion].destino = d; 
+                historialRegistros[indexFilaEnEdicion].ingreso = i; 
+                historialRegistros[indexFilaEnEdicion].egreso = e; 
+                historialRegistros[indexFilaEnEdicion].efectivo = ef; 
+                historialRegistros[indexFilaEnEdicion].descripcion = ds; 
+                indexFilaEnEdicion = -1; 
+                mostrarToast("Registro modificado con éxito.", true); 
+            } else { 
+                const tiempo = new Date(); 
+                const f = tiempo.toLocaleDateString('es-ES') + ' ' + tiempo.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}); 
+                const nuevoRegistro = { fecha: f, integrante: nom, personaje: per, telefono: tel, destino: d, ingreso: i, egr: e, egreso: e, efectivo: ef, descripcion: ds }; 
+                historialRegistros.push(nuevoRegistro); 
+                mostrarToast("Movimiento agregado correctamente.", true); 
+            } 
+            localStorage.setItem('artesSula_historial', JSON.stringify(historialRegistros)); 
+            document.getElementById('dest').value = ''; document.getElementById('ing').value = '0'; 
+            document.getElementById('egr').value = '0'; document.getElementById('efe').value = ''; 
+            document.getElementById('desc').value = ''; 
+            const btnGuardar = document.getElementById('btn-guardar-registro'); 
+            btnGuardar.innerText = "Agregar al Inventario"; btnGuardar.className = "btn-acc"; 
+            actualizarTablasVisuales(); verificarDatosIntegrante(); 
+        }
+        function actualizarTablasVisuales() { let htmlReg = ""; let saldoGeneral = 0; historialRegistros.forEach((reg, idx) => { saldoGeneral = saldoGeneral + reg.ingreso - reg.egreso; let claseFila = "fila-vacia"; if (reg.ingreso > 0 && reg.egreso === 0) { claseFila = "fila-ingreso"; } else if (reg.egreso > 0 && reg.ingreso === 0) { claseFila = "fila-egreso"; } htmlReg += `<tr class="${claseFila}"><td><div class="contenedor-acciones-celda"><button class="btn-editar-fila" onclick="prepararEdicion(${idx})">✏️ Editar</button><button class="btn-eliminar-fila" onclick="eliminarRegistro(${idx})">🗑️ Borrar</button></div></td><td>${reg.fecha}</td><td>${reg.integrante}</td><td>${reg.personaje}</td><td>${reg.telefono}</td><td>${reg.destino}</td><td>Q${reg.ingreso.toFixed(2)}</td><td>Q${reg.egreso.toFixed(2)}</td><td>${reg.efectivo}</td><td>${reg.descripcion}</td></tr>`; }); document.getElementById('tb-reg').innerHTML = htmlReg; document.getElementById('tot-reg').innerText = saldoGeneral.toFixed(2); ejecutarFiltradoVisual(); }
+        function cerrarSesionINTEGRANTE() { ultimoFiltroExitoso = "TODOS"; document.getElementById('filtro-integrante').value = "TODOS"; ejecutarFiltradoVisual(); mostrarToast("Sesión cerrada. Pantalla protegida.", true); }
+        
+        function ejecutarFiltradoVisual() {
+            const boxFotoVista = document.getElementById('box-foto-vista'); const pantallaInicio = document.getElementById('pantalla-inicio-sula'); const datosContenedor = document.getElementById('contenedor-datos-autorizados'); const avisoFiltro = document.getElementById('aviso-contrasenia-perfil'); const tituloConsulta = document.getElementById('titulo-seccion-consulta');
+            let htmlVis = ""; let saldoFiltrado = 0;
+            if (ultimoFiltroExitoso === "TODOS" || !perfilesIntegrantes[ultimoFiltroExitoso]) { boxFotoVista.style.display = 'none'; datosContenedor.style.display = 'none'; pantallaInicio.style.display = 'flex'; avisoFiltro.style.display = 'block'; tituloConsulta.style.display = 'block'; return; }
+            pantallaInicio.style.display = 'none'; avisoFiltro.style.display = 'none'; tituloConsulta.style.display = 'none'; datosContenedor.style.display = 'block';
+            if (perfilesIntegrantes[ultimoFiltroExitoso].foto) { boxFotoVista.style.display = 'flex'; document.getElementById('img-perfil-vista').src = perfilesIntegrantes[ultimoFiltroExitoso].foto; } else { boxFotoVista.style.display = 'none'; }
+            historialRegistros.forEach(reg => { if (reg.integrante === ultimoFiltroExitoso) { saldoFiltrado = saldoFiltrado + reg.ingreso - reg.egreso; let claseFila = "fila-vacia"; if (reg.ingreso > 0 && reg.egreso === 0) { claseFila = "fila-ingreso"; } else if (reg.egreso > 0 && reg.ingreso === 0) { claseFila = "fila-egreso"; } htmlVis += `<tr class="${claseFila}"><td>${reg.fecha}</td><td>${reg.destino}</td><td>Q${reg.ingreso.toFixed(2)}</td><td>Q${reg.egreso.toFixed(2)}</td><td>${reg.efectivo}</td><td>${reg.descripcion}</td></tr>`; } });
+            if (htmlVis === "") { htmlVis = '<tr><td colspan="6" style="text-align:center; color:#888; font-style:italic; padding: 20px;">No tienes movimientos registrados en el inventario.</td></tr>'; }
+            document.getElementById('tb-vis').innerHTML = htmlVis; document.getElementById('tot-vis').innerText = saldoFiltrado.toFixed(2);
+            if (perfilesIntegrantes[ultimoFiltroExitoso]) { document.getElementById('lbl-nombre-grande').innerText = ultimoFiltroExitoso; document.getElementById('lbl-personaje').innerText = perfilesIntegrantes[ultimoFiltroExitoso].personaje || "N/A"; document.getElementById('lbl-telefono').innerText = perfilesIntegrantes[ultimoFiltroExitoso].telefono || "N/A"; }
+        }
+
+        function cargarLogoSistemaAlInicio() { const logoGuardado = localStorage.getItem('artesSula_logo_fijo'); if (logoGuardado) { document.getElementById('logo-sistema-bienvenida').src = logoGuardado; } }
+
+        function aplicarFiltroDeSeccionAppCreator() {
+            const parametrosURL = new URLSearchParams(window.location.search);
+            const vistaActiva = parametrosURL.get('vista');
+            if (vistaActiva === 'usuarios') {
+                const bSoporte1 = document.getElementById('btn-tab-soporte-ocultable');
+                const bSoporte2 = document.getElementById('btn-tab-soporte-ocultable-2');
+                if (bSoporte1) bSoporte1.style.display = 'none';
+                if (bSoporte2) bSoporte2.style.display = 'none';
+                goVis();
+            } else if (vistaActiva === 'soporte') {
+                ocultarTodosLosSegmentos();
+                document.getElementById('seg-soporte').classList.add('activo');
+                const nav1 = document.getElementById('nav-bar-integrantes');
+                const nav2 = document.getElementById('nav-bar-registro');
+                const nav3 = document.getElementById('nav-bar-soporte');
+                const switchCabecera = document.getElementById('contenedor-switch-cabecera');
+                if (nav1) nav1.style.display = 'none';
+                if (nav2) nav2.style.display = 'none';
+                if (nav3) nav3.style.display = 'none';
+                if (switchCabecera) switchCabecera.style.display = 'none';
+                cargarClaveSoporteActual();
+                renderizarAlertasSoporte();
+            }
+        }
+        
+        inicializarTemaPreferencia(); actualizarListasDesplegables(); actualizarTablasVisuales(); cargarLogoSistemaAlInicio();
+        aplicarFiltroDeSeccionAppCreator();
+        document.getElementById('input-clave-modal').addEventListener('keyup', function(event) { if (event.key === 'Enter') { verificarClaveModal(); } });
+    </script>
+</body>
+</html>
